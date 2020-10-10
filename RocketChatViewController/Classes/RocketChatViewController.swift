@@ -310,38 +310,42 @@ open class RocketChatViewController: UICollectionViewController {
     }
     
     open func updateData(with target: [ArraySection<AnyChatSection, AnyChatItem>]) {
-        print("RocketChatViewController updateData \(self.internalData.count) \(target.count)")
-        
+
         if self.internalData.count != target.count {
             let source = self.internalData
             let changeset = StagedChangeset(source: source, target: target)
             
             DispatchQueue.main.async {
-                self.collectionView!.reload(using: changeset, interrupt: { $0.changeCount > 100 }) { newData, changes in
-                    self.internalData = newData
-                    
-                    let newSections = newData.map { $0.model }
-                    let updatedItems = self.updatedItems(from: source, with: changes)
-                    self.dataUpdateDelegate?.didUpdateChatData(newData: newSections, updatedItems: updatedItems)
-                    assert(newSections.count == newData.count)
+                // UICollectionView在reloadItems的时候 默认会附加一个隐式的fade动画
+                // 所以调用performWithoutAnimation来去除动画，否则有时UICollectionView会滚动两次
+                UIView.performWithoutAnimation {
+                    self.collectionView.reload(using: changeset, interrupt: { $0.changeCount > 100 }) { newData, changes in
+                        self.internalData = newData
+
+                        let newSections = newData.map { $0.model }
+                        let updatedItems = self.updatedItems(from: source, with: changes)
+                        self.dataUpdateDelegate?.didUpdateChatData(newData: newSections, updatedItems: updatedItems)
+
+                        assert(newSections.count == newData.count)
+                    }
                 }
                 
                 let defaults = UserDefaults.standard
-                var needsScrollToTop = defaults.bool(forKey: "NeedsScrollToTop")
-                print("RocketChatViewController updateData \(needsScrollToTop)")
-                
-                if !needsScrollToTop {
+                if !defaults.bool(forKey: "NeedsScrollToTop") {
                     let section = self.internalData.last
                     let lastIndex = section!.elements.index(before: section!.elements.endIndex)
                     let lastIndexPath = IndexPath(row: lastIndex, section: self.internalData.count-1)
                     self.collectionView!.scrollToItem(at: lastIndexPath, at: .bottom, animated: true)
+                    print("RocketChatViewController updateData scrolltobottom \(lastIndex) \(lastIndexPath)")
                 }
                 else {
                     let section = self.internalData.first
                     let lastIndex = section!.elements.index(before: section!.elements.endIndex)
                     let lastIndexPath = IndexPath(row: lastIndex, section: 0)
                     self.collectionView!.scrollToItem(at: lastIndexPath, at: .bottom, animated: true)
+                    print("RocketChatViewController updateData scrolltotop")
                 }
+                
             }
         }
     }
