@@ -344,37 +344,6 @@ open class RocketChatViewController: UICollectionViewController {
                 }
             }
         }
-        
-
-//        updateDataQueue.cancelAllOperations()
-//        updateDataQueue.addOperation { [weak self] in
-//            guard
-//                let strongSelf = self,
-//                let collectionView = strongSelf.collectionView
-//                else {
-//                    return
-//            }
-//
-//            let source = strongSelf.internalData
-//            strongSelf.dataCount = source.count
-//            print("RocketChatViewController updateData a \(strongSelf.dataCount) \(target)")
-//
-//            UIView.performWithoutAnimation {
-//                // compare source and target DifferenceKit
-//                let changeset = StagedChangeset(source: source, target: target)
-//                collectionView.reload(using: changeset, interrupt: { $0.changeCount > 100 }) { newData, changes in
-//                    strongSelf.internalData = newData
-//
-////                    let newSections = newData.map { $0.model }
-////                    let updatedItems = strongSelf.updatedItems(from: source, with: changes)
-////                    strongSelf.dataUpdateDelegate?.didUpdateChatData(newData: newSections, updatedItems: updatedItems)
-//
-//                    print("RocketChatViewController updateData \(collectionView.contentSize.height) \(strongSelf.internalData.count)")
-//                    strongSelf.dataCount = strongSelf.internalData.count
-////                    assert(newSections.count == newData.count)
-//                }
-//            }
-//        }
     }
 
     func updatedItems(from data: [ArraySection<AnyChatSection, AnyChatItem>], with changes: Changeset<[ArraySection<AnyChatSection, AnyChatItem>]>?) -> [AnyHashable] {
@@ -501,34 +470,6 @@ extension RocketChatViewController {
         guard intersection.height != self.keyboardHeight else {
             return
         }
-
-//        UIView.animate(withDuration: animationDuration, delay: 0, options: animationCurve, animations: {
-//            self.keyboardHeight = intersection.height
-//
-//            // Update contentOffset with new keyboard size
-////            var contentOffset = collectionView.contentOffset
-////            contentOffset.y -= intersection.height
-//            
-//            var contentOffset = CGPoint(x: 0, y: 0)
-//            if collectionView.contentSize.height == 0 {
-//                contentOffset.y = intersection.height+composerView.frame.size.height
-//            }
-//            else if collectionView.contentSize.height < collectionView.frame.size.height-self.keyboardHeight {
-//
-//            }
-//            else {
-//                contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+intersection.height+composerView.frame.size.height+10
-//            }
-//            collectionView.contentOffset = contentOffset
-//
-//            self.view.layoutIfNeeded()
-//        }, completion: { _ in
-//            UIView.performWithoutAnimation {
-//                self.view.layoutIfNeeded()
-//            }
-//        })
-        
-        
 
         if !willDisappear {
 
