@@ -10,7 +10,7 @@ import UIKit
 import DifferenceKit
 
 public extension UICollectionView {
-    func dequeueChatCell(withReuseIdentifier reuseIdetifier: String, for indexPath: IndexPath) -> ChatCell {
+    public func dequeueChatCell(withReuseIdentifier reuseIdetifier: String, for indexPath: IndexPath) -> ChatCell {
         guard let cell = dequeueReusableCell(withReuseIdentifier: reuseIdetifier, for: indexPath) as? ChatCell else {
             fatalError("Trying to dequeue a reusable UICollectionViewCell that doesn't conforms to BindableCell protocol")
         }
@@ -132,7 +132,7 @@ public extension ChatItem where Self: Differentiable {
     // In order to use a ChatCellViewModel along with a SectionController
     // we must use it as a type-erased ChatCellViewModel, which in this case also means
     // that it must conform to the Differentiable protocol.
-    var wrapped: AnyChatItem {
+    public var wrapped: AnyChatItem {
         return AnyChatItem(self)
     }
 }
@@ -224,7 +224,8 @@ open class RocketChatViewController: UICollectionViewController {
         return operationQueue
     }()
 
-    open var isInverted = true {
+//    open var isInverted = true {
+    open var isInverted = false {// invert(倒置) or not, default is not
         didSet {
             DispatchQueue.main.async {
                 if self.isInverted != oldValue {
@@ -234,36 +235,51 @@ open class RocketChatViewController: UICollectionViewController {
             }
         }
     }
-
+    
     open var isSelfSizing = false
 
     fileprivate let kEmptyCellIdentifier = "kEmptyCellIdentifier"
 
     fileprivate var keyboardHeight: CGFloat = 0.0
+    var willDisappear: Bool = false
 
     private let invertedTransform = CGAffineTransform(scaleX: 1, y: -1)
     private let regularTransform = CGAffineTransform(scaleX: 1, y: 1)
 
     override open func viewDidLoad() {
         super.viewDidLoad()
+        let defaults = UserDefaults.standard
+        defaults.set(false, forKey: "NeedsScrollToTop")
+        
         setupChatViews()
         registerObservers()
+        startObservingKeyboard()
     }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(
+            self,
+            name: UIResponder.keyboardWillChangeFrameNotification,
+            object: nil
+        )
+    }
+
 
     open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        startObservingKeyboard()
+        willDisappear = false
     }
 
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        stopObservingKeyboard()
+        willDisappear = true
     }
 
     open override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        adjustContentSizeIfNeeded()
+
     }
+    
 
     func registerObservers() {
         view.addObserver(self, forKeyPath: "frame", options: .new, context: nil)
@@ -278,45 +294,87 @@ open class RocketChatViewController: UICollectionViewController {
 
         collectionView.collectionViewLayout = UICollectionViewFlowLayout()
         collectionView.backgroundColor = .white
+        collectionView.alwaysBounceVertical = true
 
         collectionView.transform = isInverted ? invertedTransform : collectionView.transform
 
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.keyboardDismissMode = .interactive
-        collectionView.contentInsetAdjustmentBehavior = isInverted ? .never : .always
-
-        collectionView.scrollsToTop = false
+//        collectionView.contentInsetAdjustmentBehavior = isInverted ? .never : .always
+        // important. if .always, collectionView will automatic adjust it's contentinset
+        collectionView.contentInsetAdjustmentBehavior = .never
 
         if let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout, isSelfSizing {
             flowLayout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
         }
     }
-
+    
     open func updateData(with target: [ArraySection<AnyChatSection, AnyChatItem>]) {
-        updateDataQueue.cancelAllOperations()
-        updateDataQueue.addOperation { [weak self] in
-            guard
-                let strongSelf = self,
-                let collectionView = strongSelf.collectionView
-                else {
-                    return
-            }
-
-            let source = strongSelf.internalData
-
-            UIView.performWithoutAnimation {
-                let changeset = StagedChangeset(source: source, target: target)
-                collectionView.reload(using: changeset, interrupt: { $0.changeCount > 100 }) { newData, changes in
-                    strongSelf.internalData = newData
-
+        print("RocketChatViewController updateData \(self.internalData.count) \(target.count)")
+        
+        if self.internalData.count != target.count {
+            let source = self.internalData
+            let changeset = StagedChangeset(source: source, target: target)
+            
+            DispatchQueue.main.async {
+                self.collectionView!.reload(using: changeset, interrupt: { $0.changeCount > 100 }) { newData, changes in
+                    self.internalData = newData
+                    
                     let newSections = newData.map { $0.model }
-                    let updatedItems = strongSelf.updatedItems(from: source, with: changes)
-                    strongSelf.dataUpdateDelegate?.didUpdateChatData(newData: newSections, updatedItems: updatedItems)
-
+                    let updatedItems = self.updatedItems(from: source, with: changes)
+                    self.dataUpdateDelegate?.didUpdateChatData(newData: newSections, updatedItems: updatedItems)
                     assert(newSections.count == newData.count)
+                }
+                
+                let defaults = UserDefaults.standard
+                var needsScrollToTop = defaults.bool(forKey: "NeedsScrollToTop")
+                print("RocketChatViewController updateData \(needsScrollToTop)")
+                
+                if !needsScrollToTop {
+                    let section = self.internalData.last
+                    let lastIndex = section!.elements.index(before: section!.elements.endIndex)
+                    let lastIndexPath = IndexPath(row: lastIndex, section: self.internalData.count-1)
+                    self.collectionView!.scrollToItem(at: lastIndexPath, at: .bottom, animated: true)
+                }
+                else {
+                    let section = self.internalData.first
+                    let lastIndex = section!.elements.index(before: section!.elements.endIndex)
+                    let lastIndexPath = IndexPath(row: lastIndex, section: 0)
+                    self.collectionView!.scrollToItem(at: lastIndexPath, at: .bottom, animated: true)
                 }
             }
         }
+        
+
+//        updateDataQueue.cancelAllOperations()
+//        updateDataQueue.addOperation { [weak self] in
+//            guard
+//                let strongSelf = self,
+//                let collectionView = strongSelf.collectionView
+//                else {
+//                    return
+//            }
+//
+//            let source = strongSelf.internalData
+//            strongSelf.dataCount = source.count
+//            print("RocketChatViewController updateData a \(strongSelf.dataCount) \(target)")
+//
+//            UIView.performWithoutAnimation {
+//                // compare source and target DifferenceKit
+//                let changeset = StagedChangeset(source: source, target: target)
+//                collectionView.reload(using: changeset, interrupt: { $0.changeCount > 100 }) { newData, changes in
+//                    strongSelf.internalData = newData
+//
+////                    let newSections = newData.map { $0.model }
+////                    let updatedItems = strongSelf.updatedItems(from: source, with: changes)
+////                    strongSelf.dataUpdateDelegate?.didUpdateChatData(newData: newSections, updatedItems: updatedItems)
+//
+//                    print("RocketChatViewController updateData \(collectionView.contentSize.height) \(strongSelf.internalData.count)")
+//                    strongSelf.dataCount = strongSelf.internalData.count
+////                    assert(newSections.count == newData.count)
+//                }
+//            }
+//        }
     }
 
     func updatedItems(from data: [ArraySection<AnyChatSection, AnyChatItem>], with changes: Changeset<[ArraySection<AnyChatSection, AnyChatItem>]>?) -> [AnyHashable] {
@@ -346,46 +404,37 @@ open class RocketChatViewController: UICollectionViewController {
 
 extension RocketChatViewController {
 
-    @objc open var topHeight: CGFloat {
-        if navigationController?.navigationBar.isTranslucent ?? false {
-            var top = navigationController?.navigationBar.frame.height ?? 0.0
-            top += UIApplication.shared.statusBarFrame.height
-            return top
-        }
-
-        return 0.0
-    }
-
-    @objc open var bottomHeight: CGFloat {
-        var composer = keyboardHeight > 0.0 ? keyboardHeight : composerView.frame.height
-        composer += view.safeAreaInsets.bottom
-        return composer
-    }
-
-    fileprivate func adjustContentSizeIfNeeded() {
+    fileprivate func adjustContentInsetIfNeeded() {
         guard let collectionView = collectionView else { return }
 
-        var contentInset = collectionView.contentInset
+        var contentInset = UIEdgeInsets.zero
 
         if isInverted {
-            contentInset.bottom = topHeight
-            contentInset.top = bottomHeight
+            //
         } else {
-            contentInset.bottom = bottomHeight
+            if keyboardHeight > 10.0 {// keyboard show
+                let window = UIApplication.shared.keyWindow
+                contentInset.bottom = keyboardHeight+composerView.frame.size.height+window!.safeAreaInsets.bottom
+            } else {// keyboard hide
+                contentInset.bottom = keyboardHeight+composerView.frame.size.height
+            }
         }
 
         collectionView.contentInset = contentInset
         collectionView.scrollIndicatorInsets = contentInset
+        
+        print("RocketChatViewController adjustContentInsetIfNeeded \(willDisappear) \(keyboardHeight) \(contentInset.bottom) \(composerView.frame.size.height)")
     }
-
 }
 
 extension RocketChatViewController {
     open override func numberOfSections(in collectionView: UICollectionView) -> Int {
+        print("RocketChatViewController numberOfSections \(internalData.count)")
         return internalData.count
     }
 
     open override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        print("RocketChatViewController numberOfItemsInSection \(internalData[section].elements.count)")
         return internalData[section].elements.count
     }
 
@@ -405,12 +454,16 @@ extension RocketChatViewController {
         return chatCell
     }
 
-    open override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        cell.contentView.transform = isInverted ? invertedTransform : regularTransform
-    }
+//    open override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+//        cell.contentView.transform = isInverted ? invertedTransform : regularTransform
+//    }
 }
 
-extension RocketChatViewController: UICollectionViewDelegateFlowLayout {}
+extension RocketChatViewController: UICollectionViewDelegateFlowLayout {
+    open func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return .zero
+    }
+}
 
 
 extension RocketChatViewController {
@@ -418,14 +471,6 @@ extension RocketChatViewController {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(_onKeyboardFrameWillChangeNotificationReceived(_:)),
-            name: UIResponder.keyboardWillChangeFrameNotification,
-            object: nil
-        )
-    }
-
-    func stopObservingKeyboard() {
-        NotificationCenter.default.removeObserver(
-            self,
             name: UIResponder.keyboardWillChangeFrameNotification,
             object: nil
         )
@@ -457,20 +502,61 @@ extension RocketChatViewController {
             return
         }
 
-        UIView.animate(withDuration: animationDuration, delay: 0, options: animationCurve, animations: {
+//        UIView.animate(withDuration: animationDuration, delay: 0, options: animationCurve, animations: {
+//            self.keyboardHeight = intersection.height
+//
+//            // Update contentOffset with new keyboard size
+////            var contentOffset = collectionView.contentOffset
+////            contentOffset.y -= intersection.height
+//            
+//            var contentOffset = CGPoint(x: 0, y: 0)
+//            if collectionView.contentSize.height == 0 {
+//                contentOffset.y = intersection.height+composerView.frame.size.height
+//            }
+//            else if collectionView.contentSize.height < collectionView.frame.size.height-self.keyboardHeight {
+//
+//            }
+//            else {
+//                contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+intersection.height+composerView.frame.size.height+10
+//            }
+//            collectionView.contentOffset = contentOffset
+//
+//            self.view.layoutIfNeeded()
+//        }, completion: { _ in
+//            UIView.performWithoutAnimation {
+//                self.view.layoutIfNeeded()
+//            }
+//        })
+        
+        
+
+        if !willDisappear {
+
             self.keyboardHeight = intersection.height
-
-            // Update contentOffset with new keyboard size
-            var contentOffset = collectionView.contentOffset
-            contentOffset.y -= intersection.height
-            collectionView.contentOffset = contentOffset
-
-            self.view.layoutIfNeeded()
-        }, completion: { _ in
-            UIView.performWithoutAnimation {
-                self.view.layoutIfNeeded()
+            
+            adjustContentInsetIfNeeded()
+            
+            var contentOffset = CGPoint(x: 0, y: 0)
+            if collectionView.contentSize.height == 0 {
+                contentOffset.y = keyboardHeight+composerView.frame.size.height
+                print("contentSize.height == 0 \(contentOffset.y)")
             }
-        })
+            else if collectionView.contentSize.height < collectionView.frame.size.height-keyboardHeight-composerView.frame.size.height {
+
+            }
+            else {
+                if keyboardHeight > 10.0 {// keyboard show
+                    let window = UIApplication.shared.keyWindow
+                    contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height+window!.safeAreaInsets.bottom
+                } else {// keyboard hide
+                    contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height
+                }
+                
+                print("contentSize.height == 0 else \(contentOffset.y)")
+            }
+            collectionView.setContentOffset(contentOffset, animated: true)
+            print("RocketChatViewController _onKeyboardFrameWillChangeNotificationReceived \(collectionView.contentSize.height) \(collectionView.frame.size.height) \(keyboardHeight) \(contentOffset.y)")
+        }
     }
 
     open override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
