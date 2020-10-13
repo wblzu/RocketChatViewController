@@ -386,8 +386,7 @@ extension RocketChatViewController {
             //
         } else {
             if keyboardHeight > 10.0 {// keyboard show
-                let window = UIApplication.shared.keyWindow
-                contentInset.bottom = keyboardHeight+composerView.frame.size.height+window!.safeAreaInsets.bottom
+                contentInset.bottom = keyboardHeight+composerView.frame.size.height
             } else {// keyboard hide
                 contentInset.bottom = keyboardHeight+composerView.frame.size.height
             }
@@ -493,8 +492,6 @@ extension RocketChatViewController {
             else {
                 adjustContentInsetIfNeeded()
                 if keyboardHeight > 10.0 {// keyboard show
-//                    let window = UIApplication.shared.keyWindow
-//                    contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height+window!.safeAreaInsets.bottom
                     contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height
                 } else {// keyboard hide
                     contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height
