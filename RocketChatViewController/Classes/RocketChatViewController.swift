@@ -385,13 +385,7 @@ extension RocketChatViewController {
         if isInverted {
             //
         } else {
-            if keyboardHeight > 10.0 {// keyboard show
-//                let window = UIApplication.shared.keyWindow
-//                contentInset.bottom = keyboardHeight+composerView.frame.size.height+window!.safeAreaInsets.bottom
-                contentInset.bottom = keyboardHeight+composerView.frame.size.height
-            } else {// keyboard hide
-                contentInset.bottom = keyboardHeight+composerView.frame.size.height
-            }
+            contentInset.bottom = keyboardHeight+composerView.frame.size.height
         }
 
         collectionView.contentInset = contentInset
@@ -483,7 +477,6 @@ extension RocketChatViewController {
             var contentOffset = CGPoint(x: 0, y: 0)
             if collectionView.contentSize.height == 0 {
                 adjustContentInsetIfNeeded()
-                
                 contentOffset.y = keyboardHeight+composerView.frame.size.height
                 collectionView.setContentOffset(contentOffset, animated: false)
                 print("aaaaaa contentSize.height == 0 \(contentOffset.y)")
@@ -493,13 +486,7 @@ extension RocketChatViewController {
             }
             else {
                 adjustContentInsetIfNeeded()
-                if keyboardHeight > 10.0 {// keyboard show
-//                    let window = UIApplication.shared.keyWindow
-//                    contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height+window!.safeAreaInsets.bottom
-                    contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height
-                } else {// keyboard hide
-                    contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height
-                }
+                contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height
                 collectionView.setContentOffset(contentOffset, animated: false)
                 print("aaaaaa contentSize.height == 0 else \(contentOffset.y)")
             }
