@@ -462,45 +462,48 @@ extension RocketChatViewController {
             return
         }
 
-        let keyboardFrameInView = view.convert(keyboardFrame, from: nil)
-        let safeAreaFrame = view.safeAreaLayoutGuide.layoutFrame.insetBy(dx: 0, dy: -additionalSafeAreaInsets.top)
-        let intersection = safeAreaFrame.intersection(keyboardFrameInView)
-
-        let animationDuration: TimeInterval = (notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0
-        let animationCurveRawNSN = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber
-        let animationCurveRaw = animationCurveRawNSN?.uintValue ?? UIView.AnimationOptions.curveEaseInOut.rawValue
-        let animationCurve = UIView.AnimationOptions(rawValue: animationCurveRaw)
-        
-        guard intersection.height != self.keyboardHeight else {
-            return
-        }
+//        let keyboardFrameInView = view.convert(keyboardFrame, from: nil)
+//        let safeAreaFrame = view.safeAreaLayoutGuide.layoutFrame.insetBy(dx: 0, dy: -additionalSafeAreaInsets.top)
+//        let intersection = safeAreaFrame.intersection(keyboardFrameInView)
+//
+//        let animationDuration: TimeInterval = (notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0
+//        let animationCurveRawNSN = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber
+//        let animationCurveRaw = animationCurveRawNSN?.uintValue ?? UIView.AnimationOptions.curveEaseInOut.rawValue
+//        let animationCurve = UIView.AnimationOptions(rawValue: animationCurveRaw)
+//
+//        guard intersection.height != self.keyboardHeight else {
+//            return
+//        }
 
         if !willDisappear {
 
-            self.keyboardHeight = intersection.height
-            
-            adjustContentInsetIfNeeded()
+            self.keyboardHeight = keyboardFrame.height-composerView.frame.size.height
             
             var contentOffset = CGPoint(x: 0, y: 0)
             if collectionView.contentSize.height == 0 {
+                adjustContentInsetIfNeeded()
+                
                 contentOffset.y = keyboardHeight+composerView.frame.size.height
-                print("contentSize.height == 0 \(contentOffset.y)")
+                collectionView.setContentOffset(contentOffset, animated: false)
+                print("aaaaaa contentSize.height == 0 \(contentOffset.y)")
             }
             else if collectionView.contentSize.height < collectionView.frame.size.height-keyboardHeight-composerView.frame.size.height {
-
+                print("aaaaaa contentSize.height < ")
             }
             else {
+                adjustContentInsetIfNeeded()
                 if keyboardHeight > 10.0 {// keyboard show
-                    let window = UIApplication.shared.keyWindow
-                    contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height+window!.safeAreaInsets.bottom
+//                    let window = UIApplication.shared.keyWindow
+//                    contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height+window!.safeAreaInsets.bottom
+                    contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height
                 } else {// keyboard hide
                     contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height
                 }
-                
-                print("contentSize.height == 0 else \(contentOffset.y)")
+                collectionView.setContentOffset(contentOffset, animated: false)
+                print("aaaaaa contentSize.height == 0 else \(contentOffset.y)")
             }
-            collectionView.setContentOffset(contentOffset, animated: true)
-            print("RocketChatViewController _onKeyboardFrameWillChangeNotificationReceived \(collectionView.contentSize.height) \(collectionView.frame.size.height) \(keyboardHeight) \(contentOffset.y)")
+            
+            print("aaaaaa RocketChatViewController _onKeyboardFrameWillChangeNotificationReceived \(collectionView.contentSize.height) \(collectionView.frame.size.height) \(keyboardHeight) \(composerView.frame.size.height)")
         }
     }
 
