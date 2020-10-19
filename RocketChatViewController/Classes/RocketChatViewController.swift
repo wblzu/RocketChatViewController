@@ -60,6 +60,7 @@ public struct AnyChatItem: ChatItem, Differentiable {
  */
 
 public struct AnyChatSection: ChatSection {
+    
     public weak var controllerContext: UIViewController? {
         get {
             return base.controllerContext
@@ -79,7 +80,7 @@ public struct AnyChatSection: ChatSection {
     public init<D: ChatSection>(_ base: D) {
         self.base = base
     }
-
+    
     public func viewModels() -> [AnyChatItem] {
         return base.viewModels()
     }
@@ -144,6 +145,7 @@ public extension ChatItem where Self: Differentiable {
 public protocol ChatCell {
     var messageWidth: CGFloat { get set }
     var viewModel: AnyChatItem? { get set }
+    var indexPath: IndexPath? { get set }
     func configure(completeRendering: Bool)
 }
 
@@ -309,45 +311,51 @@ open class RocketChatViewController: UICollectionViewController {
         }
     }
     
+    
     open func updateData(with target: [ArraySection<AnyChatSection, AnyChatItem>]) {
 
-        if self.internalData.count != target.count {
-            let source = self.internalData
-            let changeset = StagedChangeset(source: source, target: target)
-            
-            DispatchQueue.main.async {
-                // UICollectionView在reloadItems的时候 默认会附加一个隐式的fade动画
-                // 所以调用performWithoutAnimation来去除动画，否则有时UICollectionView会滚动两次
-                UIView.performWithoutAnimation {
-                    self.collectionView.reload(using: changeset, interrupt: { $0.changeCount > 100 }) { newData, changes in
-                        self.internalData = newData
-
-                        let newSections = newData.map { $0.model }
-                        let updatedItems = self.updatedItems(from: source, with: changes)
-                        self.dataUpdateDelegate?.didUpdateChatData(newData: newSections, updatedItems: updatedItems)
-
-                        assert(newSections.count == newData.count)
-                    }
-                }
-                
-                let defaults = UserDefaults.standard
-                if !defaults.bool(forKey: "NeedsScrollToTop") {
-                    let section = self.internalData.last
-                    let lastIndex = section!.elements.index(before: section!.elements.endIndex)
-                    let lastIndexPath = IndexPath(row: lastIndex, section: self.internalData.count-1)
-                    self.collectionView!.scrollToItem(at: lastIndexPath, at: .bottom, animated: true)
-                    print("RocketChatViewController updateData scrolltobottom \(lastIndex) \(lastIndexPath)")
-                }
-                else {
-                    let section = self.internalData.first
-                    let lastIndex = section!.elements.index(before: section!.elements.endIndex)
-                    let lastIndexPath = IndexPath(row: lastIndex, section: 0)
-                    self.collectionView!.scrollToItem(at: lastIndexPath, at: .bottom, animated: true)
-                    print("RocketChatViewController updateData scrolltotop")
-                }
-                
-            }
-        }
+//        if self.internalData.count != target.count {
+//            let source = self.internalData
+//            
+//            let changeCount111 = target.count - source.count
+//            let changeset = StagedChangeset(source: source, target: target)
+//            
+//            print("RocketChatViewController updateData target.count \(target.count)")
+//            
+//            DispatchQueue.main.async {
+//                // UICollectionView在reloadItems的时候 默认会附加一个隐式的fade动画
+//                // 所以调用performWithoutAnimation来去除动画，否则有时UICollectionView会滚动两次
+//                UIView.performWithoutAnimation {
+//                    self.collectionView.reload(using: changeset, interrupt: { $0.changeCount > 100 }) { newData, changes in
+//                        self.internalData = newData
+//                        self.updateDataForAudioCellReuse(with: self.internalData, playingAudioCellIndexPath: playingAudioCellIndexPath)
+//
+//                        let newSections = newData.map { $0.model }
+//                        let updatedItems = self.updatedItems(from: source, with: changes)
+//                        self.dataUpdateDelegate?.didUpdateChatData(newData: newSections, updatedItems: updatedItems)
+//
+//                        assert(newSections.count == newData.count)
+//                    }
+//                }
+//
+//                let defaults = UserDefaults.standard
+//                if !defaults.bool(forKey: "NeedsScrollToTop") {
+//                    let section = self.internalData.last
+//                    let lastIndex = section!.elements.index(before: section!.elements.endIndex)
+//                    let lastIndexPath = IndexPath(row: lastIndex, section: self.internalData.count-1)
+//                    self.collectionView!.scrollToItem(at: lastIndexPath, at: .bottom, animated: true)
+//                    print("RocketChatViewController updateData scrolltobottom \(lastIndex) \(lastIndexPath)")
+//                }
+//                else {
+//                    let section = self.internalData.first
+//                    let lastIndex = section!.elements.index(before: section!.elements.endIndex)
+//                    let lastIndexPath = IndexPath(row: lastIndex, section: 0)
+//                    self.collectionView!.scrollToItem(at: lastIndexPath, at: .bottom, animated: true)
+//                    print("RocketChatViewController updateData scrolltotop")
+//                }
+//                
+//            }
+//        }
     }
 
     func updatedItems(from data: [ArraySection<AnyChatSection, AnyChatItem>], with changes: Changeset<[ArraySection<AnyChatSection, AnyChatItem>]>?) -> [AnyHashable] {
@@ -395,37 +403,6 @@ extension RocketChatViewController {
     }
 }
 
-extension RocketChatViewController {
-    open override func numberOfSections(in collectionView: UICollectionView) -> Int {
-        print("RocketChatViewController numberOfSections \(internalData.count)")
-        return internalData.count
-    }
-
-    open override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        print("RocketChatViewController numberOfItemsInSection \(internalData[section].elements.count)")
-        return internalData[section].elements.count
-    }
-
-    open override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let sectionController = internalData[indexPath.section].model
-        let viewModels = sectionController.viewModels()
-
-        if indexPath.row >= viewModels.count {
-            return collectionView.dequeueReusableCell(withReuseIdentifier: kEmptyCellIdentifier, for: indexPath)
-        }
-
-        let viewModel = viewModels[indexPath.row]
-        guard let chatCell = sectionController.cell(for: viewModel, on: collectionView, at: indexPath) as? UICollectionViewCell else {
-            fatalError("The object conforming to BindableCell is not a UICollectionViewCell as it must be")
-        }
-
-        return chatCell
-    }
-
-//    open override func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-//        cell.contentView.transform = isInverted ? invertedTransform : regularTransform
-//    }
-}
 
 extension RocketChatViewController: UICollectionViewDelegateFlowLayout {
     open func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -479,19 +456,19 @@ extension RocketChatViewController {
                 adjustContentInsetIfNeeded()
                 contentOffset.y = keyboardHeight+composerView.frame.size.height
                 collectionView.setContentOffset(contentOffset, animated: false)
-                print("aaaaaa contentSize.height == 0 \(contentOffset.y)")
+                print("contentSize.height == 0 \(contentOffset.y)")
             }
             else if collectionView.contentSize.height < collectionView.frame.size.height-keyboardHeight-composerView.frame.size.height {
-                print("aaaaaa contentSize.height < ")
+                print("contentSize.height < ")
             }
             else {
                 adjustContentInsetIfNeeded()
                 contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height
                 collectionView.setContentOffset(contentOffset, animated: false)
-                print("aaaaaa contentSize.height == 0 else \(contentOffset.y)")
+                print("contentSize.height == 0 else \(contentOffset.y)")
             }
             
-            print("aaaaaa RocketChatViewController _onKeyboardFrameWillChangeNotificationReceived \(collectionView.contentSize.height) \(collectionView.frame.size.height) \(keyboardHeight) \(composerView.frame.size.height)")
+            print("RocketChatViewController _onKeyboardFrameWillChangeNotificationReceived \(collectionView.contentSize.height) \(collectionView.frame.size.height) \(keyboardHeight) \(composerView.frame.size.height)")
         }
     }
 
