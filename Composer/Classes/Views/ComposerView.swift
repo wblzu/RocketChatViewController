@@ -421,4 +421,10 @@ extension ComposerView: UITextViewDelegate {
 
         return true
     }
+    
+    public func textViewShouldBeginEditing(_ textView: UITextView) -> Bool {
+        print("ComposerView textViewShouldBeginEditing")
+        NotificationCenter.default.post(name: Notification.Name("ComposerViewTextViewShouldBeginEditing"), object: nil)
+        return true
+    }
 }
