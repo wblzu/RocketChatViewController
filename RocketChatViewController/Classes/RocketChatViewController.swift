@@ -243,7 +243,16 @@ open class RocketChatViewController: UICollectionViewController {
     fileprivate let kEmptyCellIdentifier = "kEmptyCellIdentifier"
 
     fileprivate var keyboardHeight: CGFloat = 0.0
+
     var willDisappear: Bool = false
+    var adjustContentSize: Bool = false
+    var intersectionHeight: CGFloat = 0.0 {
+        didSet {
+            if intersectionHeight != oldValue {
+                adjustContentSize = true
+            }
+        }
+    }
 
     private let invertedTransform = CGAffineTransform(scaleX: 1, y: -1)
     private let regularTransform = CGAffineTransform(scaleX: 1, y: 1)
@@ -399,7 +408,7 @@ extension RocketChatViewController {
         collectionView.contentInset = contentInset
         collectionView.scrollIndicatorInsets = contentInset
         
-        print("RocketChatViewController adjustContentInsetIfNeeded \(willDisappear) \(keyboardHeight) \(contentInset.bottom) \(composerView.frame.size.height)")
+        print("aaaaaa contentsize RocketChatViewController adjustContentInsetIfNeeded \(willDisappear) \(keyboardHeight) \(contentInset.bottom) \(composerView.frame.size.height)")
     }
 }
 
@@ -434,41 +443,57 @@ extension RocketChatViewController {
             return
         }
 
-//        let keyboardFrameInView = view.convert(keyboardFrame, from: nil)
-//        let safeAreaFrame = view.safeAreaLayoutGuide.layoutFrame.insetBy(dx: 0, dy: -additionalSafeAreaInsets.top)
-//        let intersection = safeAreaFrame.intersection(keyboardFrameInView)
-//
+        let keyboardFrameInView = view.convert(keyboardFrame, from: nil)
+        let safeAreaFrame = view.safeAreaLayoutGuide.layoutFrame.insetBy(dx: 0, dy: -additionalSafeAreaInsets.top)
+        let intersection = safeAreaFrame.intersection(keyboardFrameInView)
+
 //        let animationDuration: TimeInterval = (notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0
 //        let animationCurveRawNSN = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber
 //        let animationCurveRaw = animationCurveRawNSN?.uintValue ?? UIView.AnimationOptions.curveEaseInOut.rawValue
 //        let animationCurve = UIView.AnimationOptions(rawValue: animationCurveRaw)
 //
 //        guard intersection.height != self.keyboardHeight else {
+//            print("aaaaaa contentsize keyboardFrame.height return")
 //            return
 //        }
 
+        print("aaaaaa contentsize keyboardFrame.height = \(keyboardFrame.height)\n intersection.height = \(intersection.height)\n composerView.frame.size.height = \(composerView.frame.size.height)\n view.safeAreaInsets.bottom = \(view.safeAreaInsets.bottom)\n intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height = \(intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height)\n self.keyboardHeight before = \(self.keyboardHeight)\n")
+        
+
+        
+        intersectionHeight = intersection.height
+
+        if intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height == self.keyboardHeight {
+            if !adjustContentSize {
+                print("aaaaaa contentsize keyboardFrame.height return")
+                return
+            }
+        }
+
         if !willDisappear {
 
-            self.keyboardHeight = keyboardFrame.height-composerView.frame.size.height
+//            self.keyboardHeight = keyboardFrame.height-composerView.frame.size.height
+            self.keyboardHeight = intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height
+            adjustContentSize = false
             
             var contentOffset = CGPoint(x: 0, y: 0)
             if collectionView.contentSize.height == 0 {
                 adjustContentInsetIfNeeded()
                 contentOffset.y = keyboardHeight+composerView.frame.size.height
                 collectionView.setContentOffset(contentOffset, animated: false)
-                print("contentSize.height == 0 \(contentOffset.y)")
+                print("aaaaaa contentsize contentSize.height == 0 \(contentOffset.y)")
             }
             else if collectionView.contentSize.height < collectionView.frame.size.height-keyboardHeight-composerView.frame.size.height {
-                print("contentSize.height < ")
+                print("aaaaaa contentsize contentSize.height < ")
             }
             else {
                 adjustContentInsetIfNeeded()
                 contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height
                 collectionView.setContentOffset(contentOffset, animated: false)
-                print("contentSize.height == 0 else \(contentOffset.y)")
+                print("aaaaaa contentsize contentSize.height == 0 else \(contentOffset.y)")
             }
             
-            print("RocketChatViewController _onKeyboardFrameWillChangeNotificationReceived \(collectionView.contentSize.height) \(collectionView.frame.size.height) \(keyboardHeight) \(composerView.frame.size.height)")
+            print("aaaaaa contentsize RocketChatViewController _onKeyboardFrameWillChangeNotificationReceived \(collectionView.contentSize.height) \(collectionView.frame.size.height) \(keyboardHeight) \(composerView.frame.size.height)")
         }
     }
 
