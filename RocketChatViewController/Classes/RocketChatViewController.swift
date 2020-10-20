@@ -243,9 +243,11 @@ open class RocketChatViewController: UICollectionViewController {
     fileprivate let kEmptyCellIdentifier = "kEmptyCellIdentifier"
 
     fileprivate var keyboardHeight: CGFloat = 0.0
-
+    fileprivate var keyboardHideHeight: CGFloat = 0.0
+    
     var willDisappear: Bool = false
     var adjustContentSize: Bool = false
+    open var adjustContentOffset: Bool = true
     var intersectionHeight: CGFloat = 0.0 {
         didSet {
             if intersectionHeight != oldValue {
@@ -265,12 +267,43 @@ open class RocketChatViewController: UICollectionViewController {
         setupChatViews()
         registerObservers()
         startObservingKeyboard()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(textDidChange),
+            name: UITextView.textDidChangeNotification,
+            object: composerView.textView
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(composerViewTextViewShouldBeginEditing),
+            name: Notification.Name("ComposerViewTextViewShouldBeginEditing"),
+            object: nil
+        )
+    }
+
+    @objc func composerViewTextViewShouldBeginEditing(_ notification: Notification) {
+        self.adjustContentOffset = true
+        print("aaaaaa contentsize composerViewTextViewShouldBeginEditing adjustContentOffset = \(adjustContentOffset)")
+    }
+    @objc func textDidChange() {
+        self.adjustContentOffset = true
+        print("aaaaaa contentsize textDidChange adjustContentOffset = \(adjustContentOffset)")
     }
     
     deinit {
         NotificationCenter.default.removeObserver(
             self,
             name: UIResponder.keyboardWillChangeFrameNotification,
+            object: nil
+        )
+        NotificationCenter.default.removeObserver(
+            self,
+            name: UITextView.textDidChangeNotification,
+            object: composerView.textView
+        )
+        NotificationCenter.default.removeObserver(
+            self,
+            name: Notification.Name("ComposerViewTextViewShouldBeginEditing"),
             object: nil
         )
     }
@@ -284,6 +317,11 @@ open class RocketChatViewController: UICollectionViewController {
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         willDisappear = true
+    }
+    
+    open override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        self.keyboardHeight = 0
     }
 
     open override func viewWillLayoutSubviews() {
@@ -408,7 +446,7 @@ extension RocketChatViewController {
         collectionView.contentInset = contentInset
         collectionView.scrollIndicatorInsets = contentInset
         
-        print("aaaaaa contentsize RocketChatViewController adjustContentInsetIfNeeded \(willDisappear) \(keyboardHeight) \(contentInset.bottom) \(composerView.frame.size.height)")
+        print("aaaaaa contentsize adjustContentInsetIfNeeded \(willDisappear) \(keyboardHeight) \(contentInset.bottom) \(composerView.frame.size.height)")
     }
 }
 
@@ -457,21 +495,19 @@ extension RocketChatViewController {
 //            return
 //        }
 
-        print("aaaaaa contentsize keyboardFrame.height = \(keyboardFrame.height)\n intersection.height = \(intersection.height)\n composerView.frame.size.height = \(composerView.frame.size.height)\n view.safeAreaInsets.bottom = \(view.safeAreaInsets.bottom)\n intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height = \(intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height)\n self.keyboardHeight before = \(self.keyboardHeight)\n")
-        
-
+//        print("aaaaaa contentsize keyboardFrame.height = \(keyboardFrame.height)\n intersection.height = \(intersection.height)\n composerView.frame.size.height = \(composerView.frame.size.height)\n view.safeAreaInsets.bottom = \(view.safeAreaInsets.bottom)\n intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height = \(intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height)\n self.keyboardHeight before = \(self.keyboardHeight)\n adjustContentSize = \(adjustContentSize)\n adjustContentOffset = \(adjustContentOffset)\n")
+        print("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived adjustContentSize = \(adjustContentSize) adjustContentOffset = \(adjustContentOffset)\n")
         
         intersectionHeight = intersection.height
-
+        
         if intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height == self.keyboardHeight {
             if !adjustContentSize {
-                print("aaaaaa contentsize keyboardFrame.height return")
+                print("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived return adjustContentSize = \(adjustContentSize)")
                 return
             }
         }
 
         if !willDisappear {
-
 //            self.keyboardHeight = keyboardFrame.height-composerView.frame.size.height
             self.keyboardHeight = intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height
             adjustContentSize = false
@@ -481,19 +517,22 @@ extension RocketChatViewController {
                 adjustContentInsetIfNeeded()
                 contentOffset.y = keyboardHeight+composerView.frame.size.height
                 collectionView.setContentOffset(contentOffset, animated: false)
-                print("aaaaaa contentsize contentSize.height == 0 \(contentOffset.y)")
+                print("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived contentSize.height == 0 currentoffsety \(collectionView.contentOffset.y)")
             }
             else if collectionView.contentSize.height < collectionView.frame.size.height-keyboardHeight-composerView.frame.size.height {
-                print("aaaaaa contentsize contentSize.height < ")
+                print("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived contentSize.height < ")
             }
             else {
                 adjustContentInsetIfNeeded()
-                contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height
-                collectionView.setContentOffset(contentOffset, animated: false)
-                print("aaaaaa contentsize contentSize.height == 0 else \(contentOffset.y)")
+                if self.adjustContentOffset == true {
+                    contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height
+                    collectionView.setContentOffset(contentOffset, animated: false)
+                    self.adjustContentOffset = false
+                    print("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived contentSize.height == 0 else adjustContentOffset completed and adjustContentOffset = \(adjustContentOffset)")
+                }
             }
             
-            print("aaaaaa contentsize RocketChatViewController _onKeyboardFrameWillChangeNotificationReceived \(collectionView.contentSize.height) \(collectionView.frame.size.height) \(keyboardHeight) \(composerView.frame.size.height)")
+            print("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived \(collectionView.contentSize.height) \(collectionView.frame.size.height) \(keyboardHeight) \(composerView.frame.size.height)")
         }
     }
 
