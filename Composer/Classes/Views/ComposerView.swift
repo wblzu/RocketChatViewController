@@ -356,7 +356,7 @@ public extension ComposerView {
      */
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if object as AnyObject? === leftButton && keyPath == "bounds" {
-            textViewLeadingConstraint.constant = leftButton.isHidden ? 0 : layoutMargins.left
+            textViewLeadingConstraint.constant = leftButton.isHidden ? 0 : layoutMargins.left-5
         }
 
         if object as AnyObject? === containerView && keyPath == "bounds" {
