@@ -63,7 +63,7 @@ public class ComposerView: UIView, ComposerLocalizable {
      */
     public let leftButton = tap(ComposerButton()) {
         $0.translatesAutoresizingMaskIntoConstraints = false
-        $0.setBackgroundImage(ComposerAssets.addButtonImage, for: .normal)
+        $0.setBackgroundImage(ComposerAssets.micButtonImage, for: .normal)
 
         $0.addTarget(self, action: #selector(touchUpInsideButton), for: .touchUpInside)
         $0.addTarget(self, action: #selector(touchUpOutsideButton), for: .touchUpOutside)
@@ -79,7 +79,7 @@ public class ComposerView: UIView, ComposerLocalizable {
      */
     public let rightButton = tap(ComposerButton()) {
         $0.translatesAutoresizingMaskIntoConstraints = false
-        $0.setBackgroundImage(ComposerAssets.sendButtonImage, for: .normal)
+        $0.setBackgroundImage(ComposerAssets.addButtonImage, for: .normal)
 
         $0.addTarget(self, action: #selector(touchUpInsideButton), for: .touchUpInside)
         $0.addTarget(self, action: #selector(touchUpOutsideButton), for: .touchUpOutside)
