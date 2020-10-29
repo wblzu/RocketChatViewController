@@ -263,6 +263,9 @@ public class ComposerView: UIView, ComposerLocalizable {
 
     public override func layoutSubviews() {
         super.layoutSubviews()
+        
+        textView.layer.cornerRadius = textView.frame.size.height/2
+        textView.layer.masksToBounds = true
     }
 
     public override func willMove(toSuperview newSuperview: UIView?) {
