@@ -86,7 +86,7 @@ public extension ComposerViewExpandedDelegate {
     func composerView(_ composerView: ComposerView, willConfigureButton button: ComposerButton) {
         if button == composerView.rightButton {
             let image = composerView.textView.text.isEmpty
-                ? ComposerAssets.micButtonImage : ComposerAssets.sendButtonImage
+                ? ComposerAssets.addButtonImage : ComposerAssets.sendButtonImage
             button.setBackgroundImage(image, for: .normal)
         }
     }
@@ -95,33 +95,33 @@ public extension ComposerViewExpandedDelegate {
         let rightButtonIsRecordAudio = composerView.textView.text.isEmpty
 
         if eventType == .touchDown {
-            if button === composerView.rightButton && rightButtonIsRecordAudio {
+            if button === composerView.leftButton && rightButtonIsRecordAudio {
                 self.composerView(composerView, didPressRecordAudioButton: button)
             }
         }
 
         if eventType == .touchUpInside {
-            if button === composerView.rightButton && rightButtonIsRecordAudio {
+            if button === composerView.leftButton && rightButtonIsRecordAudio {
                 self.composerView(composerView, didReleaseRecordAudioButton: button)
             }
 
-            if button === composerView.rightButton && !rightButtonIsRecordAudio {
+            if button === composerView.leftButton && !rightButtonIsRecordAudio {
                 self.composerView(composerView, didPressSendButton: button)
             }
 
-            if button === composerView.leftButton {
+            if button === composerView.rightButton {
                 self.composerView(composerView, didPressUploadButton: button)
             }
         }
 
         if eventType == .touchUpOutside {
-            if button === composerView.rightButton && rightButtonIsRecordAudio {
+            if button === composerView.leftButton && rightButtonIsRecordAudio {
                 self.composerView(composerView, didReleaseRecordAudioButton: button)
             }
         }
 
         if [.touchDragInside, .touchDragOutside].contains(eventType), let touch = event.allTouches?.first {
-            if button === composerView.rightButton {
+            if button === composerView.leftButton {
                 let first = touch.precisePreviousLocation(in: button).x
                 let second = touch.location(in: button).x
                 self.composerView(composerView, didDragRecordAudioButton: button, delta: second - first)
