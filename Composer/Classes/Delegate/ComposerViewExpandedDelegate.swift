@@ -43,7 +43,7 @@ public protocol ComposerViewExpandedDelegate: ComposerViewDelegate,
 
     func composerView(_ composerView: ComposerView, didChangeHintPrefixedWord word: String)
     func composerView(_ composerView: ComposerView, didPressSendButton button: UIButton)
-    func composerView(_ composerView: ComposerView, didPressUploadButton button: UIButton)
+    func composerView(_ composerView: ComposerView, didPressAddButton button: UIButton)
     func composerView(_ composerView: ComposerView, didPressRecordAudioButton button: UIButton)
     func composerView(_ composerView: ComposerView, didReleaseRecordAudioButton button: UIButton)
     func composerView(_ composerView: ComposerView, didDragRecordAudioButton button: UIButton, delta: CGFloat)
@@ -110,7 +110,7 @@ public extension ComposerViewExpandedDelegate {
             }
 
             if button === composerView.rightButton {
-                self.composerView(composerView, didPressUploadButton: button)
+                self.composerView(composerView, didPressAddButton: button)
             }
         }
 
