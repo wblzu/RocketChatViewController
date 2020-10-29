@@ -197,9 +197,9 @@ public class ComposerView: UIView, ComposerLocalizable {
 
     // MARK: Constraints
 
-    lazy var textViewLeadingConstraint: NSLayoutConstraint = {
-        textView.leadingAnchor.constraint(equalTo: leftButton.trailingAnchor, constant: 0)
-    }()
+//    lazy var textViewLeadingConstraint: NSLayoutConstraint = {
+//        textView.leadingAnchor.constraint(equalTo: leftButton.trailingAnchor, constant: 0)
+//    }()
 
     lazy var containerViewLeadingConstraint: NSLayoutConstraint = {
         containerView.leadingAnchor.constraint(equalTo: leadingAnchor)
@@ -238,18 +238,18 @@ public class ComposerView: UIView, ComposerLocalizable {
 
             // textView constraints
 
-            textViewLeadingConstraint,
+            textView.leadingAnchor.constraint(equalTo: leftButton.trailingAnchor, constant: 10),
             textView.trailingAnchor.constraint(equalTo: rightButton.leadingAnchor, constant: -10),
             textView.bottomAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.bottomAnchor, constant: -layoutMargins.bottom),
 
             // rightButton constraints
 
-            rightButton.trailingAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.trailingAnchor, constant: -layoutMargins.right*2),
+            rightButton.trailingAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.trailingAnchor, constant: -layoutMargins.right*2+5),
             rightButton.bottomAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.bottomAnchor, constant:  -layoutMargins.bottom*2),
 
             // leftButton constraints
 
-            leftButton.leadingAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.leadingAnchor, constant: layoutMargins.left*2),
+            leftButton.leadingAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.leadingAnchor, constant: layoutMargins.left*2-5),
             leftButton.bottomAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.bottomAnchor, constant: -layoutMargins.bottom*2),
 
             // overlayView constraints
@@ -264,8 +264,16 @@ public class ComposerView: UIView, ComposerLocalizable {
     public override func layoutSubviews() {
         super.layoutSubviews()
         
-        textView.layer.cornerRadius = textView.frame.size.height/2
+        print("aaaaaa textView.frame.size.height=\(textView.frame.size.height)")
+        if textView.frame.size.height <= 44 {
+            textView.layer.cornerRadius = textView.frame.size.height/2
+        }
+        else {
+            textView.layer.cornerRadius = 10
+        }
         textView.layer.masksToBounds = true
+        textView.textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        textView.layoutManager.allowsNonContiguousLayout = false
     }
 
     public override func willMove(toSuperview newSuperview: UIView?) {
@@ -356,7 +364,12 @@ public extension ComposerView {
      */
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if object as AnyObject? === leftButton && keyPath == "bounds" {
-            textViewLeadingConstraint.constant = leftButton.isHidden ? 0 : layoutMargins.left-5
+            if leftButton.isHidden {
+                textView.leadingAnchor.constraint(equalTo: leftButton.trailingAnchor, constant: 0)
+            }
+            else {
+                textView.leadingAnchor.constraint(equalTo: leftButton.trailingAnchor, constant: layoutMargins.left-5)
+            }
         }
 
         if object as AnyObject? === containerView && keyPath == "bounds" {
