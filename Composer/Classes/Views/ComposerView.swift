@@ -239,7 +239,7 @@ public class ComposerView: UIView, ComposerLocalizable {
             // textView constraints
 
             textViewLeadingConstraint,
-            textView.trailingAnchor.constraint(equalTo: rightButton.leadingAnchor, constant: 0),
+            textView.trailingAnchor.constraint(equalTo: rightButton.leadingAnchor, constant: -10),
             textView.bottomAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.bottomAnchor, constant: -layoutMargins.bottom),
 
             // rightButton constraints
