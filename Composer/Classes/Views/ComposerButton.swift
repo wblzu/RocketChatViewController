@@ -9,7 +9,7 @@ import UIKit
 
 public class ComposerButton: UIButton {
     public override var intrinsicContentSize: CGSize {
-        return CGSize(width: isHidden ? 0 : 24, height: 24)
+        return CGSize(width: isHidden ? 0 : 27, height: 27)
     }
 
     public func hide() {
