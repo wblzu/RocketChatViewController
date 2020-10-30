@@ -95,7 +95,10 @@ public extension ComposerViewExpandedDelegate {
         let rightButtonIsRecordAudio = composerView.textView.text.isEmpty
 
         if eventType == .touchDown {
-            if button === composerView.leftButton && rightButtonIsRecordAudio {
+//            if button === composerView.leftButton && rightButtonIsRecordAudio {
+//                self.composerView(composerView, didPressRecordAudioButton: button)
+//            }
+            if button === composerView.leftButton {
                 self.composerView(composerView, didPressRecordAudioButton: button)
             }
         }
@@ -105,11 +108,10 @@ public extension ComposerViewExpandedDelegate {
                 self.composerView(composerView, didReleaseRecordAudioButton: button)
             }
 
-            if button === composerView.leftButton && !rightButtonIsRecordAudio {
+            if button === composerView.rightButton && !rightButtonIsRecordAudio {
                 self.composerView(composerView, didPressSendButton: button)
             }
-
-            if button === composerView.rightButton {
+            else if button === composerView.rightButton {
                 self.composerView(composerView, didPressAddButton: button)
             }
         }
