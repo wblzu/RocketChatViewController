@@ -9,9 +9,13 @@
 import UIKit
 
 public struct ComposerAssets {
-    public static let addButtonImage = imageNamed("Add Button")
+//    public static let addButtonImage = imageNamed("Add Button")
+//    public static let sendButtonImage = imageNamed("Send Button")
+//    public static let micButtonImage = imageNamed("Mic Button")
+    
+    public static let addButtonImage = UIImage(named: "发送文件")
     public static let sendButtonImage = imageNamed("Send Button")
-    public static let micButtonImage = imageNamed("Mic Button")
+    public static let micButtonImage = UIImage(named: "语音按钮")
 
     public static let cancelReplyButtonImage = imageNamed("Cancel Reply Button")
 
