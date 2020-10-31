@@ -242,8 +242,7 @@ open class RocketChatViewController: UICollectionViewController {
 
     fileprivate let kEmptyCellIdentifier = "kEmptyCellIdentifier"
 
-    fileprivate var keyboardHeight: CGFloat = 0.0
-    fileprivate var keyboardHideHeight: CGFloat = 0.0
+    open var keyboardHeight: CGFloat = 0.0
     
     var willDisappear: Bool = false
     var adjustContentSize: Bool = false
@@ -261,8 +260,6 @@ open class RocketChatViewController: UICollectionViewController {
 
     override open func viewDidLoad() {
         super.viewDidLoad()
-        let defaults = UserDefaults.standard
-        defaults.set(false, forKey: "NeedsScrollToTop")
         
         setupChatViews()
         registerObservers()
@@ -361,48 +358,6 @@ open class RocketChatViewController: UICollectionViewController {
     
     open func updateData(with target: [ArraySection<AnyChatSection, AnyChatItem>]) {
 
-//        if self.internalData.count != target.count {
-//            let source = self.internalData
-//            
-//            let changeCount111 = target.count - source.count
-//            let changeset = StagedChangeset(source: source, target: target)
-//            
-//            print("RocketChatViewController updateData target.count \(target.count)")
-//            
-//            DispatchQueue.main.async {
-//                // UICollectionView在reloadItems的时候 默认会附加一个隐式的fade动画
-//                // 所以调用performWithoutAnimation来去除动画，否则有时UICollectionView会滚动两次
-//                UIView.performWithoutAnimation {
-//                    self.collectionView.reload(using: changeset, interrupt: { $0.changeCount > 100 }) { newData, changes in
-//                        self.internalData = newData
-//                        self.updateDataForAudioCellReuse(with: self.internalData, playingAudioCellIndexPath: playingAudioCellIndexPath)
-//
-//                        let newSections = newData.map { $0.model }
-//                        let updatedItems = self.updatedItems(from: source, with: changes)
-//                        self.dataUpdateDelegate?.didUpdateChatData(newData: newSections, updatedItems: updatedItems)
-//
-//                        assert(newSections.count == newData.count)
-//                    }
-//                }
-//
-//                let defaults = UserDefaults.standard
-//                if !defaults.bool(forKey: "NeedsScrollToTop") {
-//                    let section = self.internalData.last
-//                    let lastIndex = section!.elements.index(before: section!.elements.endIndex)
-//                    let lastIndexPath = IndexPath(row: lastIndex, section: self.internalData.count-1)
-//                    self.collectionView!.scrollToItem(at: lastIndexPath, at: .bottom, animated: true)
-//                    print("RocketChatViewController updateData scrolltobottom \(lastIndex) \(lastIndexPath)")
-//                }
-//                else {
-//                    let section = self.internalData.first
-//                    let lastIndex = section!.elements.index(before: section!.elements.endIndex)
-//                    let lastIndexPath = IndexPath(row: lastIndex, section: 0)
-//                    self.collectionView!.scrollToItem(at: lastIndexPath, at: .bottom, animated: true)
-//                    print("RocketChatViewController updateData scrolltotop")
-//                }
-//                
-//            }
-//        }
     }
 
     func updatedItems(from data: [ArraySection<AnyChatSection, AnyChatItem>], with changes: Changeset<[ArraySection<AnyChatSection, AnyChatItem>]>?) -> [AnyHashable] {
