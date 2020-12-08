@@ -35,7 +35,6 @@ public class PreviewAudioView: UIView, ComposerLocalizable {
 
     public let separatorView = tap(UIView()) {
         $0.translatesAutoresizingMaskIntoConstraints = false
-        $0.backgroundColor = #colorLiteral(red: 0.7960784314, green: 0.8078431373, blue: 0.8196078431, alpha: 1)
 
         $0.addConstraints([
             $0.heightAnchor.constraint(equalToConstant: Consts.separatorViewHeight),
@@ -105,7 +104,6 @@ public class PreviewAudioView: UIView, ComposerLocalizable {
      Shared initialization procedures.
      */
     private func commonInit() {
-        backgroundColor = .white
         clipsToBounds = true
 
         NotificationCenter.default.addObserver(forName: UIContentSizeCategory.didChangeNotification, object: nil, queue: nil, using: { [weak self] _ in
@@ -114,6 +112,31 @@ public class PreviewAudioView: UIView, ComposerLocalizable {
 
         addSubviews()
         setupConstraints()
+        
+        if #available(iOS 13.0, *) {
+            let dyColor1 = UIColor { (trainCollection) -> UIColor in
+                if trainCollection.userInterfaceStyle == .light {
+                    return UIColor.white
+                } else {
+                    return UIColor.tertiarySystemBackground
+                }
+            }
+            self.backgroundColor = dyColor1
+            
+            let dyColor2 = UIColor { (trainCollection) -> UIColor in
+                if trainCollection.userInterfaceStyle == .light {
+                    return UIColor(red: 235/255.0, green: 239/255.0, blue: 242/255.0, alpha: 1)
+                } else {
+                    return UIColor.separator
+                }
+            }
+            separatorView.backgroundColor = dyColor2
+            
+        } else {
+            // Fallback on earlier versions
+            self.backgroundColor = .white
+            separatorView.backgroundColor = UIColor(red: 235/255.0, green: 239/255.0, blue: 242/255.0, alpha: 1)
+        }
     }
 
     /**
@@ -280,7 +303,6 @@ public class AudioView: UIView {
      Shared initialization procedures.
      */
     private func commonInit() {
-        backgroundColor = #colorLiteral(red: 0.968627451, green: 0.9725490196, blue: 0.9803921569, alpha: 1)
         layer.cornerRadius = Consts.layerCornerRadius
         clipsToBounds = true
 
@@ -290,6 +312,22 @@ public class AudioView: UIView {
 
         addSubviews()
         setupConstraints()
+        
+        if #available(iOS 13.0, *) {
+            let dyColor1 = UIColor { (trainCollection) -> UIColor in
+                if trainCollection.userInterfaceStyle == .light {
+                    return UIColor(red: 243/255.0, green: 244/255.0, blue: 245/255.0, alpha: 1)
+                } else {
+                    return UIColor.secondarySystemBackground
+                }
+            }
+            self.backgroundColor = dyColor1
+            
+        } else {
+            // Fallback on earlier versions
+            self.backgroundColor = UIColor(red: 243/255.0, green: 244/255.0, blue: 245/255.0, alpha: 1)
+            
+        }
     }
 
     /**
