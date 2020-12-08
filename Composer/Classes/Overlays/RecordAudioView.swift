@@ -108,7 +108,6 @@ public class RecordAudioView: UIView {
      Shared initialization procedures.
      */
     private func commonInit() {
-        backgroundColor = .white
         clipsToBounds = true
 
         audioRecorder.delegate = self
@@ -128,6 +127,31 @@ public class RecordAudioView: UIView {
         addSubviews()
         setupConstraints()
         addGestureRecognizers()
+        
+        if #available(iOS 13.0, *) {
+            let dyColor1 = UIColor { (trainCollection) -> UIColor in
+                if trainCollection.userInterfaceStyle == .light {
+                    return UIColor.white
+                } else {
+                    return UIColor.tertiarySystemBackground
+                }
+            }
+            self.backgroundColor = dyColor1
+            
+            let dyColor2 = UIColor { (trainCollection) -> UIColor in
+                if trainCollection.userInterfaceStyle == .light {
+                    return UIColor(red: 235/255.0, green: 239/255.0, blue: 242/255.0, alpha: 1)
+                } else {
+                    return UIColor.separator
+                }
+            }
+            layer.borderColor = dyColor2.cgColor
+            
+        } else {
+            // Fallback on earlier versions
+            self.backgroundColor = .white
+            layer.borderColor = UIColor(red: 235/255.0, green: 239/255.0, blue: 242/255.0, alpha: 1).cgColor
+        }
     }
 
     /**
