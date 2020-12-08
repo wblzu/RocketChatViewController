@@ -22,7 +22,7 @@ public class FallbackComposerTextViewDelegate: ComposerTextViewDelegate {
 
 public class ComposerTextView: UITextView {
     public let placeholderLabel: UILabel = UILabel()
-    public let placeholderColor: UIColor = UIColor(red: 0.0, green: 0.0, blue: 0.0980392, alpha: 0.22)
+//    public let placeholderColor: UIColor = UIColor(red: 0.0, green: 0.0, blue: 0.0980392, alpha: 0.22)
 
     private var placeholderLabelConstraints = [NSLayoutConstraint]()
 
@@ -85,7 +85,7 @@ public class ComposerTextView: UITextView {
         self.addObserver(self, forKeyPath: "contentSize", options: .new, context: nil)
 
         placeholderLabel.font = font
-        placeholderLabel.textColor = placeholderColor
+//        placeholderLabel.textColor = placeholderColor
         placeholderLabel.textAlignment = textAlignment
         placeholderLabel.numberOfLines = 0
         placeholderLabel.backgroundColor = UIColor.clear
