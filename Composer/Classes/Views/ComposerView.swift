@@ -55,7 +55,21 @@ public class ComposerView: UIView, ComposerLocalizable {
      */
     public let containerView = tap(UIView()) {
         $0.translatesAutoresizingMaskIntoConstraints = false
-        $0.backgroundColor = .white
+        
+        if #available(iOS 13.0, *) {
+            let dyColor1 = UIColor { (trainCollection) -> UIColor in
+                if trainCollection.userInterfaceStyle == .light {
+                    return UIColor.white
+                } else {
+                    return UIColor.tertiarySystemBackground
+                }
+            }
+            $0.backgroundColor = dyColor1
+            
+        } else {
+            // Fallback on earlier versions
+            $0.backgroundColor = .white
+        }
     }
 
     /**
@@ -95,7 +109,7 @@ public class ComposerView: UIView, ComposerLocalizable {
      */
     public let textView = tap(ComposerTextView()) {
         $0.translatesAutoresizingMaskIntoConstraints = false
-
+    
         $0.text = ""
         $0.placeholderLabel.text = localized(.textViewPlaceholder)
         $0.placeholderLabel.font = .preferredFont(forTextStyle: .body)
@@ -103,6 +117,31 @@ public class ComposerView: UIView, ComposerLocalizable {
 
         $0.font = .preferredFont(forTextStyle: .body)
         $0.adjustsFontForContentSizeCategory = true
+        
+        if #available(iOS 13.0, *) {
+            let dyColor1 = UIColor { (trainCollection) -> UIColor in
+                if trainCollection.userInterfaceStyle == .light {
+                    return UIColor(red: 243/255.0, green: 244/255.0, blue: 245/255.0, alpha: 1)
+                } else {
+                    return UIColor.systemBackground
+                }
+            }
+            $0.backgroundColor = dyColor1
+            
+            let dyColor2 = UIColor { (trainCollection) -> UIColor in
+                if trainCollection.userInterfaceStyle == .light {
+                    return UIColor(red: 156/255.0, green: 162/255.0, blue: 168/255.0, alpha: 1)
+                } else {
+                    return UIColor.placeholderText
+                }
+            }
+            $0.placeholderLabel.textColor = dyColor2
+            
+        } else {
+            // Fallback on earlier versions
+            $0.backgroundColor = UIColor(red: 243/255.0, green: 244/255.0, blue: 245/255.0, alpha: 1)
+            $0.placeholderLabel.textColor = UIColor(red: 156/255.0, green: 162/255.0, blue: 168/255.0, alpha: 1)
+        }
     }
 
     /**
@@ -118,7 +157,20 @@ public class ComposerView: UIView, ComposerLocalizable {
      */
     public let topSeparatorView = tap(UIView()) {
         $0.translatesAutoresizingMaskIntoConstraints = false
-        $0.backgroundColor = #colorLiteral(red: 0.8823529412, green: 0.8980392157, blue: 0.9098039216, alpha: 1)
+        if #available(iOS 13.0, *) {
+            let dyColor1 = UIColor { (trainCollection) -> UIColor in
+                if trainCollection.userInterfaceStyle == .light {
+                    return UIColor(red: 225/255.0, green: 229/255.0, blue: 232/255.0, alpha: 1)
+                } else {
+                    return UIColor.secondarySystemBackground
+                }
+            }
+            $0.backgroundColor = dyColor1
+            
+        } else {
+            // Fallback on earlier versions
+            $0.backgroundColor = #colorLiteral(red: 0.8823529412, green: 0.8980392157, blue: 0.9098039216, alpha: 1)
+        }
 
         NSLayoutConstraint.activate([
             $0.heightAnchor.constraint(equalToConstant: 0.5)
