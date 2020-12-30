@@ -229,9 +229,9 @@ public class ComposerView: UIView, ComposerLocalizable {
      */
     public var isTextInputEnabled = true
 
-//    public override var intrinsicContentSize: CGSize {
-//        return CGSize(width: super.intrinsicContentSize.width, height: containerView.bounds.height)
-//    }
+    public override var intrinsicContentSize: CGSize {
+        return CGSize(width: super.intrinsicContentSize.width, height: containerView.bounds.height)
+    }
 
     public convenience init() {
         self.init(frame: .zero)
