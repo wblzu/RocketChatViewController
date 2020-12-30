@@ -244,7 +244,7 @@ open class RocketChatViewController: UICollectionViewController {
 
     open var keyboardHeight: CGFloat = 0.0
     
-    var willDisappear: Bool = false
+    open var willDisappear: Bool = false
     var adjustContentSize: Bool = false
     open var adjustContentOffset: Bool = true
     var intersectionHeight: CGFloat = 0.0 {
