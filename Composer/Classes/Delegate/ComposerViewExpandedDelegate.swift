@@ -96,6 +96,8 @@ public extension ComposerViewExpandedDelegate {
 
         if eventType == .touchDown {
             if button === composerView.leftButton {
+                composerView.textView.resignFirstResponder()
+                composerView.containerViewBottomConstraint.constant = 0
                 self.composerView(composerView, didPressRecordAudioButton: button)
             }
         }
@@ -110,7 +112,7 @@ public extension ComposerViewExpandedDelegate {
             }
             else if button === composerView.rightButton {
                 composerView.textView.resignFirstResponder()
-                composerView.containerViewBottomConstraint.constant = -199
+                composerView.containerViewBottomConstraint.constant = -139
 //                composerView.containerView.setNeedsLayout()
 //                composerView.containerView.superview?.setNeedsLayout()
 //                composerView.containerView.superview?.layoutIfNeeded()
