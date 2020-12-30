@@ -31,6 +31,8 @@ private class ComposerViewFallbackDelegate: ComposerViewDelegate { }
 
 // MARK: Initializers
 public class ComposerView: UIView, ComposerLocalizable {
+    static let ObservingInputAccessoryViewFrameDidChangeNotification = "ObservingInputAccessoryViewFrameDidChangeNotification"
+    
     /**
      The object that acts as the delegate of the composer.
      */
@@ -191,15 +193,45 @@ public class ComposerView: UIView, ComposerLocalizable {
         $0.translatesAutoresizingMaskIntoConstraints = false
         $0.isHidden = true
     }
+    
+    public let keyboardBackgroundView = tap(UIView()) {
+        $0.translatesAutoresizingMaskIntoConstraints = false
+        $0.backgroundColor = .red
+        if #available(iOS 13.0, *) {
+            let dyColor1 = UIColor { (trainCollection) -> UIColor in
+                if trainCollection.userInterfaceStyle == .light {
+                    return .white
+                } else {
+                    return UIColor.tertiarySystemBackground
+                }
+            }
+            $0.backgroundColor = dyColor1
+            
+        } else {
+            // Fallback on earlier versions
+            $0.backgroundColor = .white
+        }
+        let btn2 = UIButton(type: .system)
+        btn2.setTitle("你好", for: .normal)
+        btn2.setTitleColor(.black, for: .normal)
+        btn2.tintColor = UIColor.black
+        btn2.frame = CGRect(x: 20, y: 20, width: 80, height: 40)
+        btn2.addTarget(self, action: #selector(action2), for: .touchUpInside)
+        $0.addSubview(btn2)
+    }
+    
+    @objc func action2() {
+        print("hello, action2")
+    }
 
     /**
      A Boolean value that indicates whether text can change in the textView
      */
     public var isTextInputEnabled = true
 
-    public override var intrinsicContentSize: CGSize {
-        return CGSize(width: super.intrinsicContentSize.width, height: containerView.bounds.height)
-    }
+//    public override var intrinsicContentSize: CGSize {
+//        return CGSize(width: super.intrinsicContentSize.width, height: containerView.bounds.height)
+//    }
 
     public convenience init() {
         self.init(frame: .zero)
@@ -236,6 +268,7 @@ public class ComposerView: UIView, ComposerLocalizable {
      Adds buttons and other UI elements as subviews.
      */
     private func addSubviews() {
+        addSubview(keyboardBackgroundView)
         addSubview(containerView)
 
         containerView.addSubview(leftButton)
@@ -245,6 +278,14 @@ public class ComposerView: UIView, ComposerLocalizable {
         containerView.addSubview(topSeparatorView)
         containerView.addSubview(utilityStackView)
         containerView.addSubview(overlayView)
+        
+        // constraint for keyboardBackgroundView
+        NSLayoutConstraint.activate([
+            keyboardBackgroundView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 49),
+            keyboardBackgroundView.leftAnchor.constraint(equalTo: containerView.leftAnchor),
+            keyboardBackgroundView.rightAnchor.constraint(equalTo: containerView.rightAnchor),
+            keyboardBackgroundView.heightAnchor.constraint(equalToConstant: 288)
+        ])
     }
 
     // MARK: Constraints
@@ -256,6 +297,10 @@ public class ComposerView: UIView, ComposerLocalizable {
     lazy var containerViewLeadingConstraint: NSLayoutConstraint = {
         containerView.leadingAnchor.constraint(equalTo: leadingAnchor)
     }()
+    
+    public lazy var containerViewBottomConstraint: NSLayoutConstraint = {
+        return containerView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0)
+    }()
 
     /**
      Sets up constraints between the UI elements in the composer.
@@ -266,7 +311,8 @@ public class ComposerView: UIView, ComposerLocalizable {
 
             containerViewLeadingConstraint,
             containerView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            containerView.bottomAnchor.constraint(equalTo: bottomAnchor),
+//            containerView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            containerViewBottomConstraint,
 
             // utilityStackView constraints
 
@@ -330,9 +376,16 @@ public class ComposerView: UIView, ComposerLocalizable {
 
     public override func willMove(toSuperview newSuperview: UIView?) {
         super.willMove(toSuperview: newSuperview)
+        superview?.removeObserver(self, forKeyPath: "center")
+        
+        newSuperview?.addObserver(self, forKeyPath: "center", options: [.old, .new], context: nil)
 
         reloadAddons()
         configureButtons()
+    }
+    
+    deinit {
+        superview?.removeObserver(self, forKeyPath: "center")
     }
 
     override public func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
@@ -415,6 +468,15 @@ public extension ComposerView {
      Called when the content size of the text view changes and adjusts the composer height constraint.
      */
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if object as AnyObject? === self.superview && keyPath == "center" {
+            #if DEBUG
+            let rect = self.superview!.frame
+            let height = UIScreen.main.bounds.height-rect.minY-self.frame.height
+            print("observeValue self.superview!.frame.origin.y \(rect.origin.y) \(height)")
+            #endif
+        }
+        
+        
         if object as AnyObject? === leftButton && keyPath == "bounds" {
             if leftButton.isHidden {
                 textView.leadingAnchor.constraint(equalTo: leftButton.trailingAnchor, constant: 0)
@@ -491,6 +553,7 @@ extension ComposerView: UITextViewDelegate {
     }
     
     public func textViewShouldBeginEditing(_ textView: UITextView) -> Bool {
+        containerViewBottomConstraint.constant = 0
         print("ComposerView textViewShouldBeginEditing")
         NotificationCenter.default.post(name: Notification.Name("ComposerViewTextViewShouldBeginEditing"), object: nil)
         return true
