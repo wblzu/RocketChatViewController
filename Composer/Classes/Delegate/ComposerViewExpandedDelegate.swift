@@ -109,6 +109,13 @@ public extension ComposerViewExpandedDelegate {
                 self.composerView(composerView, didPressSendButton: button)
             }
             else if button === composerView.rightButton {
+                composerView.textView.resignFirstResponder()
+                composerView.containerViewBottomConstraint.constant = -199
+//                composerView.containerView.setNeedsLayout()
+//                composerView.containerView.superview?.setNeedsLayout()
+//                composerView.containerView.superview?.layoutIfNeeded()
+//                composerView.layoutIfNeeded()
+//                composerView.containerView.layoutIfNeeded()
                 self.composerView(composerView, didPressAddButton: button)
             }
         }
