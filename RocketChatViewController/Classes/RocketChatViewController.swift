@@ -199,13 +199,15 @@ public protocol ChatDataUpdateDelegate: class {
 
 open class RocketChatViewController: UICollectionViewController {
     open var composerHeightConstraint: NSLayoutConstraint!
-    open var composerView = ComposerView()
+//    open var composerView = ComposerView()
+    open var composerView = BWComposerView.init(frame: CGRect(x: 0, y: UIScreen.main.bounds.height-80, width: UIScreen.main.bounds.width, height: 80))
 
     open override var inputAccessoryView: UIView? {
         guard presentedViewController?.isBeingDismissed != false else {
             return nil
         }
         
+        composerView.delegate = self
         composerView.layoutMargins = view.layoutMargins
         composerView.directionalLayoutMargins = systemMinimumLayoutMargins
         return composerView
@@ -497,7 +499,59 @@ extension RocketChatViewController {
                 return
             }
 
-            composerView.containerViewLeadingConstraint.constant = window.bounds.width - view.bounds.width
+//            composerView.containerViewLeadingConstraint.constant = window.bounds.width - view.bounds.width
         }
     }
 }
+
+
+
+extension RocketChatViewController: BWComposerViewDelegate {
+    public func textViewTextChange(_ textView: UITextView) {
+        guard let inputAccessoryView = self.inputAccessoryView,
+              let constraint = self.inputAccessoryView?.constraints[0]
+              else {
+            return
+        }
+        constraint.constant = 40+textView.contentSize.height
+        inputAccessoryView.superview?.layoutIfNeeded()
+    }
+    
+    public func textViewBeginEdit(_ textView: UITextView) {
+        guard let inputAccessoryView = self.inputAccessoryView,
+              let constraint = self.inputAccessoryView?.constraints[0]
+              else {
+            return
+        }
+        self.adjustContentOffset = true
+        constraint.constant = 40+textView.contentSize.height
+        inputAccessoryView.superview?.layoutIfNeeded()
+    }
+    
+    public func leftButtonAction(_ composerView: BWComposerView) {
+        guard let inputAccessoryView = self.inputAccessoryView,
+              let constraint = self.inputAccessoryView?.constraints[0]
+              else {
+            return
+        }
+        constraint.constant = 80
+        inputAccessoryView.superview?.layoutIfNeeded()
+    }
+    
+    public func rightButtonAction(_ composerView: BWComposerView) {
+        guard let inputAccessoryView = self.inputAccessoryView,
+              let constraint = self.inputAccessoryView?.constraints[0]
+              else {
+            return
+        }
+        constraint.constant = 150
+        inputAccessoryView.superview?.layoutIfNeeded()
+        
+        adjustContentInsetIfNeeded()
+        var contentOffset = CGPoint(x: 0, y: 0)
+        contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height
+        collectionView.setContentOffset(contentOffset, animated: false)
+        self.adjustContentOffset = false
+    }
+}
+
