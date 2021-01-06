@@ -8,7 +8,7 @@
 import UIKit
 import Foundation
 
-protocol BWComposerViewDelegate: class {
+public protocol BWComposerViewDelegate: class {
     func leftButtonAction(_ composerView: BWComposerView)
     func rightButtonAction(_ composerView: BWComposerView)
     
@@ -16,13 +16,16 @@ protocol BWComposerViewDelegate: class {
     func textViewTextChange(_ textView: UITextView)
 }
 
-class BWComposerView: UIView {
+public class BWComposerView: UIView {
     public var textView: UITextView!
     
     public var leftButton: UIButton!
     public var rightButton: UIButton!
     
-    weak var delegate: BWComposerViewDelegate?
+    public weak var delegate: BWComposerViewDelegate?
+    
+    public var leftButtonClicked: Bool = false
+    public var rightButtonClicked: Bool = false
     
     public convenience init() {
         self.init(frame: .zero)
@@ -82,20 +85,21 @@ class BWComposerView: UIView {
     }
     
     @objc func action1(_ button: UIButton) {
-        textView.resignFirstResponder()
-        delegate?.leftButtonAction(self)
+        if !leftButtonClicked {
+            textView.resignFirstResponder()
+            delegate?.leftButtonAction(self)
+        }
     }
     
     @objc func action2(_ button: UIButton) {
-        textView.resignFirstResponder()
-        delegate?.rightButtonAction(self)
+        if !rightButtonClicked {
+            textView.resignFirstResponder()
+            delegate?.rightButtonAction(self)
+        }
     }
     
-//    @objc private func textDidChange() {
-//
-//    }
     
-    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+    public override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if object as AnyObject? === textView && keyPath == "contentSize" {
             var frame = textView.frame
             var height: CGFloat = 0.0
@@ -135,7 +139,9 @@ class BWComposerView: UIView {
 
 
 extension BWComposerView: UITextViewDelegate {
-    func textViewShouldBeginEditing(_ textView: UITextView) -> Bool {
+    public func textViewShouldBeginEditing(_ textView: UITextView) -> Bool {
+        leftButtonClicked = false
+        rightButtonClicked = false
         delegate?.textViewBeginEdit(textView)
         return true
     }
