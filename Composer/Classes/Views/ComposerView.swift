@@ -493,7 +493,7 @@ public extension ComposerView {
 
         if object as AnyObject? === textView && keyPath == "contentSize" {
             textView.invalidateIntrinsicContentSize()
-            self.layoutIfNeeded()
+            self.superview?.layoutIfNeeded()
         }
     }
 
