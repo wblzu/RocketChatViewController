@@ -246,7 +246,7 @@ open class RocketChatViewController: UICollectionViewController {
     fileprivate let kEmptyCellIdentifier = "kEmptyCellIdentifier"
 
     open var keyboardHeight: CGFloat = 0.0
-    open var keyboardDown: Bool = false
+    open var compareArray: [CGFloat] = []
     
     open var willDisappear: Bool = false
     var adjustContentSize: Bool = false
@@ -504,6 +504,30 @@ extension RocketChatViewController {
 //            composerView.containerViewLeadingConstraint.constant = window.bounds.width - view.bounds.width
         }
     }
+    
+    // MARK: ComposerView reduceComposerViewHeight
+    public func reduceComposerViewHeight() {
+        guard let inputAccessoryView = self.inputAccessoryView,
+              let constraint = self.inputAccessoryView?.constraints[0]
+              else {
+            return
+        }
+
+        let targetHeight = (composerView.textView.contentSize.height <= 44 ? 44 : composerView.textView.contentSize.height)+view.safeAreaInsets.bottom+20
+        
+        if constraint.constant != targetHeight {
+            UIView.animate(withDuration: 0.2) {
+                constraint.constant = targetHeight
+                inputAccessoryView.superview?.layoutIfNeeded()
+            }
+            completion: { (_) in
+//                self.composerView.showArea = false
+//                self.composerView.keyboardStatus = .BWEditing
+            }
+            self.composerView.showArea = false
+            self.composerView.keyboardStatus = .BWEditing
+        }
+    }
 }
 
 
@@ -566,7 +590,7 @@ extension RocketChatViewController: BWComposerViewDelegate {
               else {
             return
         }
-        constraint.constant = 150
+        constraint.constant = 200
         inputAccessoryView.superview?.layoutIfNeeded()
         
         adjustContentInsetIfNeeded()
@@ -574,5 +598,6 @@ extension RocketChatViewController: BWComposerViewDelegate {
         contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height
         collectionView.setContentOffset(contentOffset, animated: false)
         self.adjustContentOffset = false
+        self.composerView.showArea = true
     }
 }
