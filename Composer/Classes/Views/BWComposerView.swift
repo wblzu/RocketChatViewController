@@ -122,9 +122,7 @@ public class BWComposerView: UIView {
     
     @objc func action1(_ button: UIButton) {
         if keyboardStatus != .BWLeft {
-            UIView.animate(withDuration: 0.25) {
-                self.containerView.alpha = 0
-            }
+            self.containerView.alpha = 0
             keyboardStatus = .BWLeft
             showArea = false
             textView.resignFirstResponder()
