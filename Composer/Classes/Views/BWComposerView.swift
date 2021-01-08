@@ -26,7 +26,7 @@ public protocol BWComposerViewDelegate: class {
 public class BWComposerView: UIView {
     static let ObservingInputAccessoryViewFrameDidChangeNotification = "ObservingInputAccessoryViewFrameDidChangeNotification"
     
-    public let kTextViewDefaultHeight: CGFloat = 44
+    public let kTextViewDefaultHeight: CGFloat = 44.0
     
     public var textView: UITextView!
     
@@ -70,13 +70,13 @@ public class BWComposerView: UIView {
         rightButton.setImage(UIImage(named: "发送文件"), for: .normal)
         rightButton.addTarget(self, action: #selector(action2(_:)), for: .touchUpInside)
         
-        textView = UITextView.init(frame: CGRect(x: 50, y: 10, width: UIScreen.main.bounds.width-100, height: 44))
+        textView = UITextView.init(frame: CGRect(x: 50, y: 10, width: UIScreen.main.bounds.width-100, height: kTextViewDefaultHeight))
         textView.delegate = self
         textView.font = UIFont.systemFont(ofSize: 17.0)
         
         containerView = UIView.init(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 200))
-//        containerView.backgroundColor = .clear
-        containerView.backgroundColor = .orange
+        containerView.backgroundColor = .clear
+        containerView.alpha = 0
         addSubview(containerView)
         
         let picButton = UIButton(type: .system)
@@ -122,7 +122,9 @@ public class BWComposerView: UIView {
     
     @objc func action1(_ button: UIButton) {
         if keyboardStatus != .BWLeft {
-            containerView.isHidden = true
+            UIView.animate(withDuration: 0.25) {
+                self.containerView.alpha = 0
+            }
             keyboardStatus = .BWLeft
             showArea = false
             textView.resignFirstResponder()
@@ -132,10 +134,12 @@ public class BWComposerView: UIView {
     
     @objc func action2(_ button: UIButton) {
         if keyboardStatus != .BWRight {
+            UIView.animate(withDuration: 0.25) {
+                self.containerView.alpha = 1
+            }
             keyboardStatus = .BWRight
             textView.resignFirstResponder()
             delegate?.rightButtonAction(self)
-            containerView.isHidden = false
         }
     }
     
@@ -153,7 +157,7 @@ public class BWComposerView: UIView {
     
     public override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if object as AnyObject? === textView && keyPath == "contentSize" {
-            let height: CGFloat = min(100, textView.contentSize.height <= 44 ? 44 : textView.contentSize.height)
+            let height: CGFloat = min(100, textView.contentSize.height <= kTextViewDefaultHeight ? kTextViewDefaultHeight : textView.contentSize.height)
             print("abcd ComposerView observeValue textView \(textView.frame.size.height) \(textView.contentSize.height)")
             var frame = textView.frame
             frame.size.height = height
@@ -179,7 +183,7 @@ public class BWComposerView: UIView {
         super.layoutSubviews()
         
         print("abcd layoutSubviews textView.frame.size.height=\(textView.frame.size.height) \(textView.contentSize.height)")
-        if textView.contentSize.height <= 44 {
+        if textView.contentSize.height <= kTextViewDefaultHeight {
             textView.layer.cornerRadius = textView.contentSize.height/2
         }
         else {
@@ -194,6 +198,9 @@ public class BWComposerView: UIView {
 
 extension BWComposerView: UITextViewDelegate {
     public func textViewShouldBeginEditing(_ textView: UITextView) -> Bool {
+        UIView.animate(withDuration: 0.25) {
+            self.containerView.alpha = 0
+        }
         keyboardStatus = .BWEditing
         showArea = false
         delegate?.textViewBeginEdit(textView)
