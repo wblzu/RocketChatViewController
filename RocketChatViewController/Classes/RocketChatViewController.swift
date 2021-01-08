@@ -516,7 +516,7 @@ extension RocketChatViewController {
         let targetHeight = (composerView.textView.contentSize.height <= 44 ? 44 : composerView.textView.contentSize.height)+view.safeAreaInsets.bottom+20
         
         if constraint.constant != targetHeight {
-            UIView.animate(withDuration: 0.2) {
+            UIView.animate(withDuration: 0.25) {
                 constraint.constant = targetHeight
                 inputAccessoryView.superview?.layoutIfNeeded()
             }
