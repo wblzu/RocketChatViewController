@@ -200,7 +200,7 @@ public protocol ChatDataUpdateDelegate: class {
 open class RocketChatViewController: UICollectionViewController {
     open var composerHeightConstraint: NSLayoutConstraint!
 //    open var composerView = ComposerView()
-    open var composerView = BWComposerView.init(frame: CGRect(x: 0, y: UIScreen.main.bounds.height-80, width: UIScreen.main.bounds.width, height: 80))
+    open var composerView = BWComposerView()
 
     open override var inputAccessoryView: UIView? {
         guard presentedViewController?.isBeingDismissed != false else {
@@ -208,6 +208,7 @@ open class RocketChatViewController: UICollectionViewController {
         }
         
         composerView.delegate = self
+        
         composerView.layoutMargins = view.layoutMargins
         composerView.directionalLayoutMargins = systemMinimumLayoutMargins
         return composerView
@@ -216,7 +217,7 @@ open class RocketChatViewController: UICollectionViewController {
     open override var canBecomeFirstResponder: Bool {
         return true
     }
-
+    
     private var internalData: [ArraySection<AnyChatSection, AnyChatItem>] = []
 
     open weak var dataUpdateDelegate: ChatDataUpdateDelegate?
@@ -245,6 +246,7 @@ open class RocketChatViewController: UICollectionViewController {
     fileprivate let kEmptyCellIdentifier = "kEmptyCellIdentifier"
 
     open var keyboardHeight: CGFloat = 0.0
+    open var keyboardDown: Bool = false
     
     open var willDisappear: Bool = false
     var adjustContentSize: Bool = false
@@ -453,7 +455,7 @@ extension RocketChatViewController {
 //        }
 
 //        print("aaaaaa contentsize keyboardFrame.height = \(keyboardFrame.height)\n intersection.height = \(intersection.height)\n composerView.frame.size.height = \(composerView.frame.size.height)\n view.safeAreaInsets.bottom = \(view.safeAreaInsets.bottom)\n intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height = \(intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height)\n self.keyboardHeight before = \(self.keyboardHeight)\n adjustContentSize = \(adjustContentSize)\n adjustContentOffset = \(adjustContentOffset)\n")
-        print("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived adjustContentSize = \(adjustContentSize) adjustContentOffset = \(adjustContentOffset)\n")
+        print("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived adjustContentSize = \(adjustContentSize) adjustContentOffset = \(adjustContentOffset) \(intersection.height)")
         
         intersectionHeight = intersection.height
         
@@ -507,13 +509,33 @@ extension RocketChatViewController {
 
 
 extension RocketChatViewController: BWComposerViewDelegate {
+    
+    public func keyboardFrameChangeByDrag(_ textView: UITextView, keyBoardheight: CGFloat) {
+        guard let inputAccessoryView = self.inputAccessoryView,
+              let constraint = self.inputAccessoryView?.constraints[0]
+              else {
+            return
+        }
+        
+        let targetHeight = (textView.contentSize.height <= 44 ? 44 : textView.contentSize.height)+view.safeAreaInsets.bottom+20
+        let changeValue = targetHeight-keyBoardheight
+        if keyBoardheight <= view.safeAreaInsets.bottom {
+            print("abcde keyboardFrameChangeByDrag drag normal \(keyBoardheight) \(changeValue)")
+            constraint.constant = min(changeValue, targetHeight)
+        }
+        else { // keyboard drag Up too fast
+            print("abcde keyboardFrameChangeByDrag drag up too fast \(keyBoardheight) \(changeValue)")
+            constraint.constant = targetHeight-view.safeAreaInsets.bottom
+        }
+    }
+    
     public func textViewTextChange(_ textView: UITextView) {
         guard let inputAccessoryView = self.inputAccessoryView,
               let constraint = self.inputAccessoryView?.constraints[0]
               else {
             return
         }
-        constraint.constant = 40+textView.contentSize.height
+        constraint.constant = min(140, (textView.contentSize.height <= 44 ? 44 : textView.contentSize.height)+view.safeAreaInsets.bottom+20)
         inputAccessoryView.superview?.layoutIfNeeded()
     }
     
@@ -524,7 +546,7 @@ extension RocketChatViewController: BWComposerViewDelegate {
             return
         }
         self.adjustContentOffset = true
-        constraint.constant = 40+textView.contentSize.height
+        constraint.constant = min(140, (textView.contentSize.height <= 44 ? 44 : textView.contentSize.height)+20)
         inputAccessoryView.superview?.layoutIfNeeded()
     }
     
@@ -534,7 +556,7 @@ extension RocketChatViewController: BWComposerViewDelegate {
               else {
             return
         }
-        constraint.constant = 80
+        constraint.constant = 64+view.safeAreaInsets.bottom
         inputAccessoryView.superview?.layoutIfNeeded()
     }
     
@@ -554,4 +576,3 @@ extension RocketChatViewController: BWComposerViewDelegate {
         self.adjustContentOffset = false
     }
 }
-
