@@ -14,9 +14,12 @@ public protocol BWComposerViewDelegate: class {
     
     func textViewBeginEdit(_ textView: UITextView)
     func textViewTextChange(_ textView: UITextView)
+    func keyboardFrameChangeByDrag(_ textView: UITextView, keyBoardheight: CGFloat)
 }
 
 public class BWComposerView: UIView {
+    static let ObservingInputAccessoryViewFrameDidChangeNotification = "ObservingInputAccessoryViewFrameDidChangeNotification"
+    
     public var textView: UITextView!
     
     public var leftButton: UIButton!
@@ -43,23 +46,33 @@ public class BWComposerView: UIView {
 
     
     public func commonInit() {
-        self.backgroundColor = UIColor.red
+        if #available(iOS 13.0, *) {
+            let dyColor = UIColor { (trainCollection) -> UIColor in
+                if trainCollection.userInterfaceStyle == .light {
+                    return UIColor.white
+                } else {
+                    return UIColor.tertiarySystemBackground
+                }
+            }
+            self.backgroundColor = dyColor
+            
+        } else {
+            // Fallback on earlier versions
+            self.backgroundColor = UIColor.white
+        }
 
         leftButton = UIButton(type: .system)
-        leftButton.frame = CGRect(x: 10, y: 10, width: 35, height: 35)
-        leftButton.setTitle("L", for: .normal)
+        leftButton.frame = CGRect(x: 10, y: 15, width: 35, height: 35)
+        leftButton.setImage(UIImage(named: "语音按钮"), for: .normal)
         leftButton.addTarget(self, action: #selector(action1(_:)), for: .touchUpInside)
         
         rightButton = UIButton(type: .system)
-        rightButton.frame = CGRect(x: UIScreen.main.bounds.width-50, y: 10, width: 35, height: 35)
-        rightButton.setTitle("R", for: .normal)
+        rightButton.frame = CGRect(x: UIScreen.main.bounds.width-45, y: 15, width: 35, height: 35)
+        rightButton.setImage(UIImage(named: "发送文件"), for: .normal)
         rightButton.addTarget(self, action: #selector(action2(_:)), for: .touchUpInside)
-        
         
         textView = UITextView.init(frame: CGRect(x: 50, y: 10, width: UIScreen.main.bounds.width-100, height: 44))
         textView.delegate = self
-//        let notificationCenter = NotificationCenter.default
-//        notificationCenter.addObserver(textView, selector: #selector(textDidChange), name: UITextView.textDidChangeNotification, object: nil)
         textView.font = UIFont.systemFont(ofSize: 17.0)
         
         addSubview(leftButton)
@@ -86,6 +99,8 @@ public class BWComposerView: UIView {
     
     @objc func action1(_ button: UIButton) {
         if !leftButtonClicked {
+            leftButtonClicked = true
+            rightButtonClicked = false
             textView.resignFirstResponder()
             delegate?.leftButtonAction(self)
         }
@@ -93,6 +108,8 @@ public class BWComposerView: UIView {
     
     @objc func action2(_ button: UIButton) {
         if !rightButtonClicked {
+            leftButtonClicked = false
+            rightButtonClicked = true
             textView.resignFirstResponder()
             delegate?.rightButtonAction(self)
         }
@@ -101,18 +118,25 @@ public class BWComposerView: UIView {
     
     public override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if object as AnyObject? === textView && keyPath == "contentSize" {
-            var frame = textView.frame
-            var height: CGFloat = 0.0
-            if textView.contentSize.height <= 44 {
-                height = 44
-            }
-            else {
-                height = textView.contentSize.height
-            }
+            let height: CGFloat = min(100, textView.contentSize.height <= 44 ? 44 : textView.contentSize.height)
             print("abcd ComposerView observeValue textView \(textView.frame.size.height) \(textView.contentSize.height)")
+            var frame = textView.frame
             frame.size.height = height
             textView.frame = frame
+            leftButton.frame.origin.y = height-30
+            rightButton.frame.origin.y = height-30
             delegate?.textViewTextChange(textView)
+        }
+        
+        if object as AnyObject? === self.superview && keyPath == "center" {
+            #if DEBUG
+            let rect = self.superview!.frame
+            let height = UIScreen.main.bounds.height-rect.minY-self.frame.height
+            if !rightButtonClicked {
+                delegate?.keyboardFrameChangeByDrag(textView, keyBoardheight: height)
+            }
+            print("observeValue self.superview!.frame.origin.y \(rect.origin.y) \(height)")
+            #endif
         }
     }
     
@@ -131,9 +155,15 @@ public class BWComposerView: UIView {
         textView.layoutManager.allowsNonContiguousLayout = false
     }
     
+    public override func willMove(toSuperview newSuperview: UIView?) {
+        super.willMove(toSuperview: newSuperview)
+        superview?.removeObserver(self, forKeyPath: "center")
+        
+        newSuperview?.addObserver(self, forKeyPath: "center", options: [.old, .new], context: nil)
+    }
     
     deinit {
-//        NotificationCenter.default.removeObserver(self, name: UITextView.textDidChangeNotification, object: nil)
+        superview?.removeObserver(self, forKeyPath: "center")
     }
 }
 
