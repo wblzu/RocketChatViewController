@@ -7,6 +7,7 @@
 
 import UIKit
 import Foundation
+import AudioToolbox.AudioServices
 
 public enum BWKeyboardStatus: String {
     case BWLeft
@@ -23,6 +24,16 @@ public protocol BWComposerViewDelegate: class {
     func keyboardFrameChange(_ textView: UITextView, keyBoardheight: CGFloat)
 }
 
+public protocol BWComposerViewMultiMediaDelegate: class {
+    // audio
+    func recordButtonDidBegin()
+    func recordButtonDidStop()
+    func recordButtonDidCancel()
+    
+    // image
+    func imagePickButtonDidBegin()
+}
+
 public class BWComposerView: UIView {
     static let ObservingInputAccessoryViewFrameDidChangeNotification = "ObservingInputAccessoryViewFrameDidChangeNotification"
     
@@ -36,13 +47,16 @@ public class BWComposerView: UIView {
     public var containerView: UIView!
     public var leftButton: UIButton!
     public var rightButton: UIButton!
-    public var pressMic: UIView!
-    public var pressMicLabel: UILabel!
+    public var recorderView: UIView!
+    public var pressIndicatorLabel: UILabel!
+    
+     var cancelRecording: Bool = false
     
     public var keyboardStatus: BWKeyboardStatus = .BWEditing
     public var showArea: Bool = false
     
     public weak var delegate: BWComposerViewDelegate?
+    public weak var multiMediaDelegate: BWComposerViewMultiMediaDelegate?
     
     
     public convenience init() {
@@ -68,28 +82,28 @@ public class BWComposerView: UIView {
         leftButton = UIButton(type: .system)
         leftButton.frame = CGRect(x: 10, y: 15, width: 35, height: 35)
         leftButton.setImage(UIImage(named: "语音按钮"), for: .normal)
-        leftButton.addTarget(self, action: #selector(action1(_:)), for: .touchUpInside)
+        leftButton.addTarget(self, action: #selector(leftAction(_:)), for: .touchUpInside)
         
         rightButton = UIButton(type: .system)
         rightButton.frame = CGRect(x: UIScreen.main.bounds.width-45, y: 15, width: 35, height: 35)
         rightButton.setImage(UIImage(named: "发送文件"), for: .normal)
-        rightButton.addTarget(self, action: #selector(action2(_:)), for: .touchUpInside)
+        rightButton.addTarget(self, action: #selector(rightAction(_:)), for: .touchUpInside)
         
         
         //
-        pressMic = UIView.init(frame: CGRect(x: 50, y: 10, width: UIScreen.main.bounds.width-100, height: kTextViewDefaultHeight))
-        pressMic.layer.cornerRadius = 10
+        recorderView = UIView.init(frame: CGRect(x: 50, y: 10, width: UIScreen.main.bounds.width-100, height: kTextViewDefaultHeight))
+        recorderView.layer.cornerRadius = 10
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressRecognized(_:)))
         longPress.minimumPressDuration = 0.01
-        pressMic.addGestureRecognizer(longPress)
-        addSubview(pressMic)
+        recorderView.addGestureRecognizer(longPress)
+        addSubview(recorderView)
         
-        pressMicLabel = UILabel.init(frame: CGRect(x: 0, y: 0, width: pressMic.frame.size.width, height: pressMic.frame.size.height))
-        pressMicLabel.isUserInteractionEnabled = false
-        pressMicLabel.textAlignment = .center
-        pressMicLabel.font = UIFont.systemFont(ofSize: 17.0, weight: .semibold)
-        pressMicLabel.text = "按住 说话"
-        pressMic.addSubview(pressMicLabel)
+        pressIndicatorLabel = UILabel.init(frame: CGRect(x: 0, y: 0, width: recorderView.frame.size.width, height: recorderView.frame.size.height))
+        pressIndicatorLabel.isUserInteractionEnabled = false
+        pressIndicatorLabel.textAlignment = .center
+        pressIndicatorLabel.font = UIFont.systemFont(ofSize: 17.0, weight: .semibold)
+        pressIndicatorLabel.text = "按住 说话"
+        recorderView.addSubview(pressIndicatorLabel)
         
         
         //
@@ -107,7 +121,7 @@ public class BWComposerView: UIView {
         let picButton = UIButton(type: .system)
         picButton.frame = CGRect(x: 20, y: 15, width: 50, height: 50)
         picButton.setImage(UIImage(named: "sharemore_pic"), for: .normal)
-        picButton.addTarget(self, action: #selector(action1(_:)), for: .touchUpInside)
+        picButton.addTarget(self, action: #selector(pickImageAction(_:)), for: .touchUpInside)
         
         addSubview(leftButton)
         addSubview(rightButton)
@@ -132,7 +146,7 @@ public class BWComposerView: UIView {
                     return UIColor.secondarySystemBackground
                 }
             }
-            pressMic.backgroundColor = dyColor2
+            recorderView.backgroundColor = dyColor2
             
             let dyColor3 = UIColor { (trainCollection) -> UIColor in
                 if trainCollection.userInterfaceStyle == .light {
@@ -147,12 +161,12 @@ public class BWComposerView: UIView {
             // Fallback on earlier versions
             self.backgroundColor = UIColor(red: 250/255.0, green: 250/255.0, blue: 250/255.0, alpha: 1)
             backgroundView.backgroundColor = UIColor(red: 250/255.0, green: 250/255.0, blue: 250/255.0, alpha: 1)
-            pressMic.backgroundColor = UIColor.white
+            recorderView.backgroundColor = UIColor.white
             textView.backgroundColor = UIColor(red: 243/255.0, green: 244/255.0, blue: 245/255.0, alpha: 1)
         }
     }
     
-    @objc func action1(_ button: UIButton) {
+    @objc func leftAction(_ button: UIButton) {
         if keyboardStatus != .BWLeft {
             leftButton.setImage(UIImage(named: "ToolViewKeyboard"), for: .normal)
             kLastTextViewFrame = textView.frame
@@ -185,7 +199,7 @@ public class BWComposerView: UIView {
         }
     }
     
-    @objc func action2(_ button: UIButton) {
+    @objc func rightAction(_ button: UIButton) {
         if keyboardStatus != .BWRight {
             UIView.animate(withDuration: 0.25) {
                 self.containerView.alpha = 1
@@ -216,7 +230,6 @@ public class BWComposerView: UIView {
     
     @objc private func longPressRecognized(_ sender: UILongPressGestureRecognizer) {
         if sender.state == .began {
-            pressMicLabel.text = "松开 结束"
             if #available(iOS 13.0, *) {
                 let dyColor1 = UIColor { (trainCollection) -> UIColor in
                     if trainCollection.userInterfaceStyle == .light {
@@ -225,18 +238,35 @@ public class BWComposerView: UIView {
                         return UIColor.systemBackground
                     }
                 }
-                pressMic.backgroundColor = dyColor1
+                recorderView.backgroundColor = dyColor1
                 
             } else {
                 // Fallback on earlier versions
-                pressMic.backgroundColor = UIColor.white
+                recorderView.backgroundColor = UIColor.white
             }
+            
+            pressIndicatorLabel.text = "松开 发送"
+            
+            let peek = SystemSoundID(1519)
+            AudioServicesPlaySystemSoundWithCompletion(peek, {
+            })
+            cancelRecording = false
+            self.multiMediaDelegate?.recordButtonDidBegin()
+            
         }
         else if sender.state == .changed {
+            let point = sender.location(in: self.recorderView)
+            if self.recorderView.point(inside: point, with: nil) {
+                cancelRecording = false
+                pressIndicatorLabel.text = "松开 发送"
+            } else {
+                // cancel recording
+                cancelRecording = true
+                pressIndicatorLabel.text = "上滑 取消"
+            }
             
         }
         else {
-            pressMicLabel.text = "按住 说话"
             if #available(iOS 13.0, *) {
                 let dyColor1 = UIColor { (trainCollection) -> UIColor in
                     if trainCollection.userInterfaceStyle == .light {
@@ -245,13 +275,26 @@ public class BWComposerView: UIView {
                         return UIColor.secondarySystemBackground
                     }
                 }
-                pressMic.backgroundColor = dyColor1
+                recorderView.backgroundColor = dyColor1
                 
             } else {
                 // Fallback on earlier versions
-                pressMic.backgroundColor = UIColor.white
+                recorderView.backgroundColor = UIColor.white
+            }
+            
+            pressIndicatorLabel.text = "按住 说话"
+            
+            print("cancelRecording = \(cancelRecording)")
+            if cancelRecording {
+                self.multiMediaDelegate?.recordButtonDidCancel()
+            } else {
+                self.multiMediaDelegate?.recordButtonDidStop()
             }
         }
+    }
+    
+    @objc func pickImageAction(_ button: UIButton) {
+        self.multiMediaDelegate?.imagePickButtonDidBegin()
     }
     
     public override func willMove(toSuperview newSuperview: UIView?) {
