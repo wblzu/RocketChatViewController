@@ -403,7 +403,7 @@ extension RocketChatViewController {
         }
 
         collectionView.contentInset = contentInset
-        collectionView.scrollIndicatorInsets = contentInset
+//        collectionView.scrollIndicatorInsets = contentInset
         
         print("aaaaaa contentsize adjustContentInsetIfNeeded \(willDisappear) \(keyboardHeight) \(contentInset.bottom) \(composerView.frame.size.height)")
     }
@@ -491,7 +491,7 @@ extension RocketChatViewController {
                 }
             }
             
-            print("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived \(collectionView.contentSize.height) \(collectionView.frame.size.height) \(keyboardHeight) \(composerView.frame.size.height)")
+            print("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived out \(collectionView.contentSize.height) \(collectionView.frame.size.height) \(keyboardHeight) \(composerView.frame.size.height)")
         }
     }
 
