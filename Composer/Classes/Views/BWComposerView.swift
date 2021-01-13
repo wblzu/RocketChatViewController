@@ -248,6 +248,7 @@ public class BWComposerView: UIView {
             pressIndicatorLabel.text = "松开 发送"
             
             let peek = SystemSoundID(1519)
+            print("sender.state == .began")
             AudioServicesPlaySystemSoundWithCompletion(peek, {
             })
             cancelRecording = false
