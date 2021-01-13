@@ -200,8 +200,6 @@ public class RecordAudioView: UIView {
             if let startAudioRecordURL = ComposerAssets.startAudioRecordSound {
                 play(sound: startAudioRecordURL)
             }
-
-            NotificationCenter.default.post(name: Notification.Name("COMPOSERVIEWSTARTRECORDAUDIO"), object: nil)
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
                 self.audioRecorder.record()
