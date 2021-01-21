@@ -101,6 +101,7 @@ public class BWComposerView: UIView {
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressRecognized(_:)))
         longPress.minimumPressDuration = 0.01
         recorderView.addGestureRecognizer(longPress)
+        recorderView.isHidden = true
         addSubview(recorderView)
         
         pressIndicatorLabel = UILabel.init(frame: CGRect(x: 0, y: 0, width: recorderView.frame.size.width, height: recorderView.frame.size.height))
@@ -148,7 +149,7 @@ public class BWComposerView: UIView {
             
             let dyColor2 = UIColor { (trainCollection) -> UIColor in
                 if trainCollection.userInterfaceStyle == .light {
-                    return UIColor.white
+                    return UIColor(red: 244/255.0, green: 244/255.0, blue: 247/255.0, alpha: 1)
                 } else {
                     return UIColor.secondarySystemBackground
                 }
@@ -157,7 +158,7 @@ public class BWComposerView: UIView {
             
             let dyColor3 = UIColor { (trainCollection) -> UIColor in
                 if trainCollection.userInterfaceStyle == .light {
-                    return UIColor(red: 243/255.0, green: 244/255.0, blue: 245/255.0, alpha: 1)
+                    return UIColor(red: 244/255.0, green: 244/255.0, blue: 247/255.0, alpha: 1)
                 } else {
                     return UIColor.systemBackground
                 }
@@ -168,8 +169,8 @@ public class BWComposerView: UIView {
             // Fallback on earlier versions
             self.backgroundColor = UIColor(red: 250/255.0, green: 250/255.0, blue: 250/255.0, alpha: 1)
             backgroundView.backgroundColor = UIColor(red: 250/255.0, green: 250/255.0, blue: 250/255.0, alpha: 1)
-            recorderView.backgroundColor = UIColor.white
-            textView.backgroundColor = UIColor(red: 243/255.0, green: 244/255.0, blue: 245/255.0, alpha: 1)
+            recorderView.backgroundColor = UIColor(red: 244/255.0, green: 244/255.0, blue: 247/255.0, alpha: 1)
+            textView.backgroundColor = UIColor(red: 244/255.0, green: 244/255.0, blue: 247/255.0, alpha: 1)
         }
     }
     
@@ -186,6 +187,7 @@ public class BWComposerView: UIView {
             rightButton.frame.origin.y = 15
             
             self.containerView.alpha = 0
+            recorderView.isHidden = false
             keyboardStatus = .BWLeft
             showArea = false
             textView.resignFirstResponder()
@@ -201,6 +203,7 @@ public class BWComposerView: UIView {
             rightButton.frame.origin.y = kLastTextViewFrame.size.height-30
             
             keyboardStatus = .BWEditing
+            recorderView.isHidden = true
             showArea = false
             delegate?.textViewBeginEdit(textView)
         }
@@ -242,7 +245,7 @@ public class BWComposerView: UIView {
             if #available(iOS 13.0, *) {
                 let dyColor1 = UIColor { (trainCollection) -> UIColor in
                     if trainCollection.userInterfaceStyle == .light {
-                        return UIColor(red: 246/255.0, green: 246/255.0, blue: 247/255.0, alpha: 1)
+                        return UIColor(red: 236/255.0, green: 236/255.0, blue: 239/255.0, alpha: 1)
                     } else {
                         return UIColor.systemBackground
                     }
@@ -251,13 +254,12 @@ public class BWComposerView: UIView {
                 
             } else {
                 // Fallback on earlier versions
-                recorderView.backgroundColor = UIColor.white
+                recorderView.backgroundColor = UIColor(red: 236/255.0, green: 236/255.0, blue: 239/255.0, alpha: 1)
             }
             
             pressIndicatorLabel.text = "松开 发送"
             
             let peek = SystemSoundID(1519)
-            debugPrint("sender.state == .began")
             AudioServicesPlaySystemSoundWithCompletion(peek, {
             })
             cancelRecording = false
@@ -280,7 +282,7 @@ public class BWComposerView: UIView {
             if #available(iOS 13.0, *) {
                 let dyColor1 = UIColor { (trainCollection) -> UIColor in
                     if trainCollection.userInterfaceStyle == .light {
-                        return UIColor.white
+                        return UIColor(red: 244/255.0, green: 244/255.0, blue: 247/255.0, alpha: 1)
                     } else {
                         return UIColor.secondarySystemBackground
                     }
@@ -289,12 +291,10 @@ public class BWComposerView: UIView {
                 
             } else {
                 // Fallback on earlier versions
-                recorderView.backgroundColor = UIColor.white
+                recorderView.backgroundColor = UIColor(red: 244/255.0, green: 244/255.0, blue: 247/255.0, alpha: 1)
             }
             
             pressIndicatorLabel.text = "按住 说话"
-            
-            debugPrint("cancelRecording = \(cancelRecording)")
             if cancelRecording {
                 self.multiMediaDelegate?.recordButtonDidCancel()
             } else {
