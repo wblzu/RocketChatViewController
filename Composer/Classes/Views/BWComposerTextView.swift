@@ -14,14 +14,29 @@ public class BWComposerTextView: UITextView {
     }
 
     public override func canPerformAction(_ action: Selector, withSender sender: Any!) -> Bool {
-        if (action == #selector(lineBreakAction(_:))) {
-            return true
-        } else {
-            return false
+        if (action == #selector(cut(_:))) {
+            return super.canPerformAction(action, withSender: sender)
         }
+        else if (action == #selector(copy(_:))) {
+            return super.canPerformAction(action, withSender: sender)
+        }
+        else if (action == #selector(paste(_:))) {
+            return super.canPerformAction(action, withSender: sender)
+        }
+        else if (action == #selector(select(_:))) {
+            return super.canPerformAction(action, withSender: sender)
+        }
+        else if (action == #selector(selectAll(_:))) {
+            return super.canPerformAction(action, withSender: sender)
+        }
+        else if (action == #selector(lineBreakAction(_:))) {
+            return true
+        }
+        
+        return false
     }
     
-    @objc func lineBreakAction(_ sender: Any) {
-        
+    @objc public func lineBreakAction(_ sender: Any) {
+        debugPrint("BWComposerTextView lineBreakAction")
     }
 }
