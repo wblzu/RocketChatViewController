@@ -199,7 +199,6 @@ public protocol ChatDataUpdateDelegate: class {
 
 open class RocketChatViewController: UICollectionViewController {
     open var composerHeightConstraint: NSLayoutConstraint!
-//    open var composerView = ComposerView()
     open var composerView = BWComposerView()
 
     open override var inputAccessoryView: UIView? {
