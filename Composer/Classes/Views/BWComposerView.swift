@@ -34,6 +34,10 @@ public protocol BWComposerViewMultiMediaDelegate: class {
     func imagePickButtonDidBegin()
 }
 
+public protocol BWComposerViewSendTextDelegate: class {    
+    func didPressSendButton(_ textView: UITextView)
+}
+
 public class BWComposerView: UIView {
     static let ObservingInputAccessoryViewFrameDidChangeNotification = "ObservingInputAccessoryViewFrameDidChangeNotification"
     
@@ -57,6 +61,7 @@ public class BWComposerView: UIView {
     
     public weak var delegate: BWComposerViewDelegate?
     public weak var multiMediaDelegate: BWComposerViewMultiMediaDelegate?
+    public weak var sendTextDelegate: BWComposerViewSendTextDelegate?
     
     
     public convenience init() {
@@ -109,6 +114,8 @@ public class BWComposerView: UIView {
         //
         textView = BWComposerTextView.init(frame: CGRect(x: 50, y: 10, width: UIScreen.main.bounds.width-100, height: kTextViewDefaultHeight))
         textView.delegate = self
+        textView.returnKeyType = .send
+        textView.enablesReturnKeyAutomatically = true
         textView.font = UIFont.systemFont(ofSize: 17.0)
         textView.addObserver(self, forKeyPath: "contentSize", options: .new, context: nil)
         
@@ -208,6 +215,7 @@ public class BWComposerView: UIView {
             textView.frame = kLastTextViewFrame
             textView.resignFirstResponder()
             
+            leftButton.setImage(UIImage(named: "语音按钮"), for: .normal)
             leftButton.frame.origin.y = kLastTextViewFrame.size.height-30
             rightButton.frame.origin.y = kLastTextViewFrame.size.height-30
             
@@ -219,6 +227,7 @@ public class BWComposerView: UIView {
             textView.isHidden = false
             textView.becomeFirstResponder()
 
+            leftButton.setImage(UIImage(named: "语音按钮"), for: .normal)
             leftButton.frame.origin.y = kLastTextViewFrame.size.height-30
             rightButton.frame.origin.y = kLastTextViewFrame.size.height-30
             
@@ -365,5 +374,12 @@ extension BWComposerView: UITextViewDelegate {
         return true
     }
     
-    
+    public func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        if text == "\n" {
+            sendTextDelegate?.didPressSendButton(textView)
+            return false
+        }
+        
+        return true
+    }
 }
