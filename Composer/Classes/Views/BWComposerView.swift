@@ -107,7 +107,7 @@ public class BWComposerView: UIView {
         
         
         //
-        textView = UITextView.init(frame: CGRect(x: 50, y: 10, width: UIScreen.main.bounds.width-100, height: kTextViewDefaultHeight))
+        textView = BWComposerTextView.init(frame: CGRect(x: 50, y: 10, width: UIScreen.main.bounds.width-100, height: kTextViewDefaultHeight))
         textView.delegate = self
         textView.font = UIFont.systemFont(ofSize: 17.0)
         textView.addObserver(self, forKeyPath: "contentSize", options: .new, context: nil)
