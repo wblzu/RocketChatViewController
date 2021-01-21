@@ -9,9 +9,6 @@
 import Foundation
 
 public class BWComposerTextView: UITextView {
-    public override var canBecomeFirstResponder: Bool {
-        return true
-    }
 
     public override func canPerformAction(_ action: Selector, withSender sender: Any!) -> Bool {
         if (action == #selector(cut(_:))) {
