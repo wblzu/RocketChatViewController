@@ -528,26 +528,6 @@ extension RocketChatViewController {
             self.composerView.keyboardStatus = .BWEditing
         }
     }
-    
-    
-    open override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
-        if action.description.contains("copy") {
-            return true
-        }
-        
-        if action.description.contains("delete") {
-            return true
-        }
-        
-        return false
-    }
-    
-    open override func copy(_ sender: Any?) {
-        UIPasteboard.general.string = "你好"
-    }
-    
-    open override func delete(_ sender: Any?) {
-    }
 }
 
 
