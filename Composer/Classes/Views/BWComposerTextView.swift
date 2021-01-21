@@ -8,12 +8,12 @@
 
 import Foundation
 
-class BWComposerTextView: UITextView {
-    override var canBecomeFirstResponder: Bool {
+public class BWComposerTextView: UITextView {
+    public override var canBecomeFirstResponder: Bool {
         return true
     }
 
-    override func canPerformAction(_ action: Selector, withSender sender: Any!) -> Bool {
+    public override func canPerformAction(_ action: Selector, withSender sender: Any!) -> Bool {
         if (action == #selector(lineBreakAction(_:))) {
             return true
         } else {
