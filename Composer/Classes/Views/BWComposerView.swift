@@ -222,6 +222,7 @@ public class BWComposerView: UIView {
             leftButton.frame.origin.y = kLastTextViewFrame.size.height-30
             rightButton.frame.origin.y = kLastTextViewFrame.size.height-30
             
+            recorderView.isHidden = true
             keyboardStatus = .BWRight
             delegate?.rightButtonAction(self)
         }
@@ -234,6 +235,7 @@ public class BWComposerView: UIView {
             leftButton.frame.origin.y = kLastTextViewFrame.size.height-30
             rightButton.frame.origin.y = kLastTextViewFrame.size.height-30
             
+            recorderView.isHidden = true
             keyboardStatus = .BWEditing
             showArea = false
             delegate?.textViewBeginEdit(textView)
