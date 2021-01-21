@@ -208,7 +208,6 @@ open class RocketChatViewController: UICollectionViewController {
         }
         
         composerView.delegate = self
-        
         composerView.layoutMargins = view.layoutMargins
         composerView.directionalLayoutMargins = systemMinimumLayoutMargins
         return composerView
@@ -284,11 +283,11 @@ open class RocketChatViewController: UICollectionViewController {
 
     @objc func composerViewTextViewShouldBeginEditing(_ notification: Notification) {
         self.adjustContentOffset = true
-        print("aaaaaa contentsize composerViewTextViewShouldBeginEditing adjustContentOffset = \(adjustContentOffset)")
+        debugPrint("aaaaaa contentsize composerViewTextViewShouldBeginEditing adjustContentOffset = \(adjustContentOffset)")
     }
     @objc func textDidChange() {
         self.adjustContentOffset = true
-        print("aaaaaa contentsize textDidChange adjustContentOffset = \(adjustContentOffset)")
+        debugPrint("aaaaaa contentsize textDidChange adjustContentOffset = \(adjustContentOffset)")
     }
     
     deinit {
@@ -405,7 +404,7 @@ extension RocketChatViewController {
         collectionView.contentInset = contentInset
 //        collectionView.scrollIndicatorInsets = contentInset
         
-        print("aaaaaa contentsize adjustContentInsetIfNeeded \(willDisappear) \(keyboardHeight) \(contentInset.bottom) \(composerView.frame.size.height)")
+        debugPrint("aaaaaa contentsize adjustContentInsetIfNeeded \(willDisappear) \(keyboardHeight) \(contentInset.bottom) \(composerView.frame.size.height)")
     }
 }
 
@@ -450,18 +449,18 @@ extension RocketChatViewController {
 //        let animationCurve = UIView.AnimationOptions(rawValue: animationCurveRaw)
 //
 //        guard intersection.height != self.keyboardHeight else {
-//            print("aaaaaa contentsize keyboardFrame.height return")
+//            debugPrint("aaaaaa contentsize keyboardFrame.height return")
 //            return
 //        }
 
-//        print("aaaaaa contentsize keyboardFrame.height = \(keyboardFrame.height)\n intersection.height = \(intersection.height)\n composerView.frame.size.height = \(composerView.frame.size.height)\n view.safeAreaInsets.bottom = \(view.safeAreaInsets.bottom)\n intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height = \(intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height)\n self.keyboardHeight before = \(self.keyboardHeight)\n adjustContentSize = \(adjustContentSize)\n adjustContentOffset = \(adjustContentOffset)\n")
-        print("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived adjustContentSize = \(adjustContentSize) adjustContentOffset = \(adjustContentOffset) \(intersection.height)")
+//        debugPrint("aaaaaa contentsize keyboardFrame.height = \(keyboardFrame.height)\n intersection.height = \(intersection.height)\n composerView.frame.size.height = \(composerView.frame.size.height)\n view.safeAreaInsets.bottom = \(view.safeAreaInsets.bottom)\n intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height = \(intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height)\n self.keyboardHeight before = \(self.keyboardHeight)\n adjustContentSize = \(adjustContentSize)\n adjustContentOffset = \(adjustContentOffset)\n")
+        debugPrint("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived adjustContentSize = \(adjustContentSize) adjustContentOffset = \(adjustContentOffset) \(intersection.height)")
         
         intersectionHeight = intersection.height
         
         if intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height == self.keyboardHeight {
             if !adjustContentSize {
-                print("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived return adjustContentSize = \(adjustContentSize)")
+                debugPrint("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived return adjustContentSize = \(adjustContentSize)")
                 return
             }
         }
@@ -476,10 +475,10 @@ extension RocketChatViewController {
                 adjustContentInsetIfNeeded()
                 contentOffset.y = keyboardHeight+composerView.frame.size.height
                 collectionView.setContentOffset(contentOffset, animated: false)
-                print("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived contentSize.height == 0 currentoffsety \(collectionView.contentOffset.y)")
+                debugPrint("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived contentSize.height == 0 currentoffsety \(collectionView.contentOffset.y)")
             }
             else if collectionView.contentSize.height < collectionView.frame.size.height-keyboardHeight-composerView.frame.size.height {
-                print("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived contentSize.height < ")
+                debugPrint("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived contentSize.height < ")
             }
             else {
                 adjustContentInsetIfNeeded()
@@ -487,11 +486,11 @@ extension RocketChatViewController {
                     contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height
                     collectionView.setContentOffset(contentOffset, animated: false)
                     self.adjustContentOffset = false
-                    print("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived contentSize.height == 0 else adjustContentOffset completed and adjustContentOffset = \(adjustContentOffset)")
+                    debugPrint("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived contentSize.height == 0 else adjustContentOffset completed and adjustContentOffset = \(adjustContentOffset)")
                 }
             }
             
-            print("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived out \(collectionView.contentSize.height) \(collectionView.frame.size.height) \(keyboardHeight) \(composerView.frame.size.height)")
+            debugPrint("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived out \(collectionView.contentSize.height) \(collectionView.frame.size.height) \(keyboardHeight) \(composerView.frame.size.height)")
         }
     }
 
@@ -529,6 +528,26 @@ extension RocketChatViewController {
             self.composerView.keyboardStatus = .BWEditing
         }
     }
+    
+    
+    open override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+        if action.description.contains("copy") {
+            return true
+        }
+        
+        if action.description.contains("delete") {
+            return true
+        }
+        
+        return false
+    }
+    
+    open override func copy(_ sender: Any?) {
+        UIPasteboard.general.string = "你好"
+    }
+    
+    open override func delete(_ sender: Any?) {
+    }
 }
 
 
@@ -543,9 +562,14 @@ extension RocketChatViewController: BWComposerViewDelegate {
         }
         
 //        let targetHeight = (textView.contentSize.height <= composerView.kTextViewDefaultHeight ? composerView.kTextViewDefaultHeight : textView.contentSize.height)+view.safeAreaInsets.bottom+20
-        let targetHeight = (textView.frame.size.height <= composerView.kTextViewDefaultHeight ? composerView.kTextViewDefaultHeight : textView.frame.size.height)+view.safeAreaInsets.bottom+20
+        
+        var targetHeight = (textView.frame.size.height <= composerView.kTextViewDefaultHeight ? composerView.kTextViewDefaultHeight : textView.frame.size.height)+view.safeAreaInsets.bottom+20
+        if view.safeAreaInsets.bottom >= 83 {// 34+49
+            targetHeight = (textView.frame.size.height <= composerView.kTextViewDefaultHeight ? composerView.kTextViewDefaultHeight : textView.frame.size.height)+view.safeAreaInsets.bottom+20-49
+        }
+
         let changeValue = targetHeight-keyBoardheight
-        print("abcde keyboardFrameChange \(keyBoardheight) \(textView.contentSize.height) \(textView.frame.size.height) \(changeValue) \(targetHeight)")
+        debugPrint("abcde keyboardFrameChange \(keyBoardheight) \(textView.contentSize.height) \(textView.frame.size.height) \(changeValue) \(targetHeight) \(view.safeAreaInsets.bottom) \(self.tabBarController?.tabBar.bounds.size.height) \(view.safeAreaLayoutGuide.layoutFrame)")
         if keyBoardheight <= view.safeAreaInsets.bottom {// keyboard drag normal
             constraint.constant = min(changeValue, targetHeight)
         }
@@ -562,7 +586,7 @@ extension RocketChatViewController: BWComposerViewDelegate {
         }
         
         let targetHeight = (textView.contentSize.height <= composerView.kTextViewDefaultHeight ? composerView.kTextViewDefaultHeight : textView.contentSize.height)+view.safeAreaInsets.bottom+20
-        print("abcde textViewTextChange \(targetHeight)")
+        debugPrint("abcde textViewTextChange \(targetHeight)")
         constraint.constant = min(composerView.kTextViewMaxHeight, targetHeight)
         inputAccessoryView.superview?.layoutIfNeeded()
     }
@@ -575,7 +599,7 @@ extension RocketChatViewController: BWComposerViewDelegate {
         }
         self.adjustContentOffset = true
         let targetHeight = (textView.contentSize.height <= composerView.kTextViewDefaultHeight ? composerView.kTextViewDefaultHeight : textView.contentSize.height)+view.safeAreaInsets.bottom+20
-        print("abcde textViewBeginEdit \(targetHeight)")
+        debugPrint("abcde textViewBeginEdit \(targetHeight)")
         constraint.constant = min(composerView.kTextViewMaxHeight, targetHeight)
         inputAccessoryView.superview?.layoutIfNeeded()
     }
@@ -596,6 +620,7 @@ extension RocketChatViewController: BWComposerViewDelegate {
               else {
             return
         }
+        
         let targetHeight = (composerView.textView.frame.size.height <= composerView.kTextViewDefaultHeight ? composerView.kTextViewDefaultHeight : composerView.textView.frame.size.height)+view.safeAreaInsets.bottom+20
         constraint.constant = composerView.kShowAreaHeight+targetHeight
         inputAccessoryView.superview?.layoutIfNeeded()
