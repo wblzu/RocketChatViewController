@@ -42,7 +42,7 @@ public class BWComposerView: UIView {
     public let kShowAreaHeight: CGFloat = 100.0
     public var kLastTextViewFrame: CGRect = CGRect.zero
     
-    public var textView: UITextView!
+    public var textView: BWComposerTextView!
     
     public var containerView: UIView!
     public var leftButton: UIButton!
@@ -248,7 +248,7 @@ public class BWComposerView: UIView {
             pressIndicatorLabel.text = "松开 发送"
             
             let peek = SystemSoundID(1519)
-            print("sender.state == .began")
+            debugPrint("sender.state == .began")
             AudioServicesPlaySystemSoundWithCompletion(peek, {
             })
             cancelRecording = false
@@ -285,7 +285,7 @@ public class BWComposerView: UIView {
             
             pressIndicatorLabel.text = "按住 说话"
             
-            print("cancelRecording = \(cancelRecording)")
+            debugPrint("cancelRecording = \(cancelRecording)")
             if cancelRecording {
                 self.multiMediaDelegate?.recordButtonDidCancel()
             } else {
@@ -313,7 +313,7 @@ public class BWComposerView: UIView {
     public override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if object as AnyObject? === textView && keyPath == "contentSize" {
             let height: CGFloat = min(100, textView.contentSize.height <= kTextViewDefaultHeight ? kTextViewDefaultHeight : textView.contentSize.height)
-            print("abcd ComposerView observeValue textView \(textView.frame.size.height) \(textView.contentSize.height) \(height)")
+            debugPrint("abcd ComposerView observeValue textView \(textView.frame.size.height) \(textView.contentSize.height) \(height)")
             var frame = textView.frame
             frame.size.height = height
             textView.frame = frame
@@ -332,7 +332,7 @@ public class BWComposerView: UIView {
             if keyboardStatus != .BWRight {
                 delegate?.keyboardFrameChange(textView, keyBoardheight: height)
             }
-            print("observeValue self.superview!.frame.origin.y \(rect.origin.y) \(height)")
+            debugPrint("observeValue self.superview!.frame.origin.y \(rect.origin.y) \(height)")
             #endif
         }
     }
@@ -340,7 +340,7 @@ public class BWComposerView: UIView {
     public override func layoutSubviews() {
         super.layoutSubviews()
         
-        print("abcd layoutSubviews textView.frame.size.height=\(textView.frame.size.height) \(textView.contentSize.height)")
+        debugPrint("abcd layoutSubviews textView.frame.size.height=\(textView.frame.size.height) \(textView.contentSize.height)")
         if textView.contentSize.height <= kTextViewDefaultHeight {
             textView.layer.cornerRadius = textView.contentSize.height/2
         }
