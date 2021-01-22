@@ -43,12 +43,12 @@ public class BWComposerView: UIView {
     
     public let kTextViewDefaultHeight: CGFloat = 44.0
     public let kTextViewMaxHeight: CGFloat = 122.0
-    public let kShowAreaHeight: CGFloat = 100.0
+    public let kMultifunctionalAreaHeight: CGFloat = 100.0
     public var kLastTextViewFrame: CGRect = CGRect.zero
     
     public var textView: BWComposerTextView!
     
-    public var containerView: UIView!
+    public var multifunctionalAreaContainerView: UIView!
     public var leftButton: UIButton!
     public var rightButton: UIButton!
     public var recorderView: UIView!
@@ -57,7 +57,7 @@ public class BWComposerView: UIView {
      var cancelRecording: Bool = false
     
     public var keyboardStatus: BWKeyboardStatus = .BWEditing
-    public var showArea: Bool = false
+    public var showMultifunctionalArea: Bool = false
     
     public weak var delegate: BWComposerViewDelegate?
     public weak var multiMediaDelegate: BWComposerViewMultiMediaDelegate?
@@ -81,7 +81,7 @@ public class BWComposerView: UIView {
     
     public func commonInit() {
         // backgroundView
-        let backgroundView = UIView.init(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: kShowAreaHeight))
+        let backgroundView = UIView.init(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: kMultifunctionalAreaHeight))
         addSubview(backgroundView)
 
         leftButton = UIButton(type: .system)
@@ -120,11 +120,11 @@ public class BWComposerView: UIView {
         textView.font = UIFont.systemFont(ofSize: 17.0)
         textView.addObserver(self, forKeyPath: "contentSize", options: .new, context: nil)
         
-        containerView = UIView.init(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: kShowAreaHeight))
-        containerView.backgroundColor = .clear
-//        containerView.backgroundColor = .orange
-        containerView.alpha = 0
-        addSubview(containerView)
+        multifunctionalAreaContainerView = UIView.init(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: kMultifunctionalAreaHeight))
+        multifunctionalAreaContainerView.backgroundColor = .clear
+//        multifunctionalAreaContainerView.backgroundColor = .orange
+        multifunctionalAreaContainerView.alpha = 0
+        addSubview(multifunctionalAreaContainerView)
         
         let picButton = UIButton(type: .system)
         picButton.frame = CGRect(x: 20, y: 15, width: 50, height: 50)
@@ -134,7 +134,7 @@ public class BWComposerView: UIView {
         addSubview(leftButton)
         addSubview(rightButton)
         addSubview(textView)
-        containerView.addSubview(picButton)
+        multifunctionalAreaContainerView.addSubview(picButton)
         
         if #available(iOS 13.0, *) {
             let dyColor1 = UIColor { (trainCollection) -> UIColor in
@@ -186,10 +186,10 @@ public class BWComposerView: UIView {
             leftButton.frame.origin.y = 15
             rightButton.frame.origin.y = 15
             
-            self.containerView.alpha = 0
+            self.multifunctionalAreaContainerView.alpha = 0
             recorderView.isHidden = false
             keyboardStatus = .BWLeft
-            showArea = false
+            showMultifunctionalArea = false
             textView.resignFirstResponder()
             delegate?.leftButtonAction(self)
         }
@@ -204,7 +204,7 @@ public class BWComposerView: UIView {
             
             keyboardStatus = .BWEditing
             recorderView.isHidden = true
-            showArea = false
+            showMultifunctionalArea = false
             delegate?.textViewBeginEdit(textView)
         }
     }
@@ -212,7 +212,7 @@ public class BWComposerView: UIView {
     @objc func rightAction(_ button: UIButton) {
         if keyboardStatus != .BWRight {
             UIView.animate(withDuration: 0.25) {
-                self.containerView.alpha = 1
+                self.multifunctionalAreaContainerView.alpha = 1
             }
             textView.isHidden = false
             textView.frame = kLastTextViewFrame
@@ -237,7 +237,7 @@ public class BWComposerView: UIView {
             
             recorderView.isHidden = true
             keyboardStatus = .BWEditing
-            showArea = false
+            showMultifunctionalArea = false
             delegate?.textViewBeginEdit(textView)
         }
     }
@@ -332,7 +332,7 @@ public class BWComposerView: UIView {
             
             leftButton.frame.origin.y = height-30
             rightButton.frame.origin.y = height-30
-            containerView.frame.origin.y = leftButton.frame.origin.y+50
+            multifunctionalAreaContainerView.frame.origin.y = leftButton.frame.origin.y+50
             delegate?.textViewTextChange(textView)
         }
         
@@ -368,10 +368,10 @@ public class BWComposerView: UIView {
 extension BWComposerView: UITextViewDelegate {
     public func textViewShouldBeginEditing(_ textView: UITextView) -> Bool {
         UIView.animate(withDuration: 0.25) {
-            self.containerView.alpha = 0
+            self.multifunctionalAreaContainerView.alpha = 0
         }
         keyboardStatus = .BWEditing
-        showArea = false
+        showMultifunctionalArea = false
         delegate?.textViewBeginEdit(textView)
         return true
     }
