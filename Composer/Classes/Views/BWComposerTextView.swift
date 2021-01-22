@@ -34,6 +34,18 @@ public class BWComposerTextView: UITextView {
     }
     
     @objc public func lineBreakAction(_ sender: Any) {
-        debugPrint("BWComposerTextView lineBreakAction")
+        if self.text.count > 0 {
+//            let location = self.selectedRange.location
+//            var str = self.text
+//            let start1 = str!.startIndex
+//            let start2 = str!.index(str!.startIndex, offsetBy: location)
+//            let str1 = String(str![start1..<start2])+"\n"
+//            let str2 = String(str![start2..<text!.endIndex])
+//            self.text = str1+str2
+//            self.selectedRange = NSRange.init(location: location+1, length: 0)
+            
+            // the simplest way
+            self.replace(self.selectedTextRange!, withText: "\r")
+        }
     }
 }
