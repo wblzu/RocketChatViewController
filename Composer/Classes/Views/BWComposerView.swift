@@ -9,10 +9,10 @@ import UIKit
 import Foundation
 import AudioToolbox.AudioServices
 
-public enum BWKeyboardStatus: String {
-    case BWLeft
-    case BWRight
-    case BWEditing
+public enum BWComposerViewStatus: String {
+    case ComposerViewStatusLeft
+    case ComposerViewStatusRight
+    case ComposerViewStatusEditing
 }
 
 public protocol BWComposerViewDelegate: class {
@@ -56,7 +56,7 @@ public class BWComposerView: UIView {
     
      var cancelRecording: Bool = false
     
-    public var keyboardStatus: BWKeyboardStatus = .BWEditing
+    public var composerViewStatus: BWComposerViewStatus = .ComposerViewStatusEditing
     public var showMultifunctionalArea: Bool = false
     
     public weak var delegate: BWComposerViewDelegate?
@@ -175,7 +175,7 @@ public class BWComposerView: UIView {
     }
     
     @objc func leftAction(_ button: UIButton) {
-        if keyboardStatus != .BWLeft {
+        if composerViewStatus != .ComposerViewStatusLeft {
             leftButton.setImage(UIImage(named: "ToolViewKeyboard"), for: .normal)
             kLastTextViewFrame = textView.frame
             textView.isHidden = true
@@ -188,12 +188,12 @@ public class BWComposerView: UIView {
             
             self.multifunctionalAreaContainerView.alpha = 0
             recorderView.isHidden = false
-            keyboardStatus = .BWLeft
+            composerViewStatus = .ComposerViewStatusLeft
             showMultifunctionalArea = false
             textView.resignFirstResponder()
             delegate?.leftButtonAction(self)
         }
-        else if keyboardStatus == .BWLeft {
+        else if composerViewStatus == .ComposerViewStatusLeft {
             leftButton.setImage(UIImage(named: "语音按钮"), for: .normal)
             textView.frame = kLastTextViewFrame
             textView.isHidden = false
@@ -202,7 +202,7 @@ public class BWComposerView: UIView {
             leftButton.frame.origin.y = kLastTextViewFrame.size.height-30
             rightButton.frame.origin.y = kLastTextViewFrame.size.height-30
             
-            keyboardStatus = .BWEditing
+            composerViewStatus = .ComposerViewStatusEditing
             recorderView.isHidden = true
             showMultifunctionalArea = false
             delegate?.textViewBeginEdit(textView)
@@ -210,7 +210,7 @@ public class BWComposerView: UIView {
     }
     
     @objc func rightAction(_ button: UIButton) {
-        if keyboardStatus != .BWRight {
+        if composerViewStatus != .ComposerViewStatusRight {
             UIView.animate(withDuration: 0.25) {
                 self.multifunctionalAreaContainerView.alpha = 1
             }
@@ -223,10 +223,10 @@ public class BWComposerView: UIView {
             rightButton.frame.origin.y = kLastTextViewFrame.size.height-30
             
             recorderView.isHidden = true
-            keyboardStatus = .BWRight
+            composerViewStatus = .ComposerViewStatusRight
             delegate?.rightButtonAction(self)
         }
-        else if keyboardStatus == .BWRight {
+        else if composerViewStatus == .ComposerViewStatusRight {
             textView.frame = kLastTextViewFrame
             textView.isHidden = false
             textView.becomeFirstResponder()
@@ -236,7 +236,7 @@ public class BWComposerView: UIView {
             rightButton.frame.origin.y = kLastTextViewFrame.size.height-30
             
             recorderView.isHidden = true
-            keyboardStatus = .BWEditing
+            composerViewStatus = .ComposerViewStatusEditing
             showMultifunctionalArea = false
             delegate?.textViewBeginEdit(textView)
         }
@@ -337,14 +337,12 @@ public class BWComposerView: UIView {
         }
         
         if object as AnyObject? === self.superview && keyPath == "center" {
-            #if DEBUG
             let rect = self.superview!.frame
             let height = UIScreen.main.bounds.height-rect.minY-self.frame.height
-            if keyboardStatus != .BWRight {
+            if composerViewStatus != .ComposerViewStatusRight {
                 delegate?.keyboardFrameChange(textView, keyBoardheight: height)
             }
             debugPrint("observeValue self.superview!.frame.origin.y \(rect.origin.y) \(height)")
-            #endif
         }
     }
     
@@ -370,7 +368,7 @@ extension BWComposerView: UITextViewDelegate {
         UIView.animate(withDuration: 0.25) {
             self.multifunctionalAreaContainerView.alpha = 0
         }
-        keyboardStatus = .BWEditing
+        composerViewStatus = .ComposerViewStatusEditing
         showMultifunctionalArea = false
         delegate?.textViewBeginEdit(textView)
         return true
