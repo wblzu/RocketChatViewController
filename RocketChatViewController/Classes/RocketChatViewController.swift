@@ -522,8 +522,8 @@ extension RocketChatViewController {
 //                self.composerView.showArea = false
 //                self.composerView.keyboardStatus = .BWEditing
             }
-            self.composerView.containerView.alpha = 0
-            self.composerView.showArea = false
+            self.composerView.multifunctionalAreaContainerView.alpha = 0
+            self.composerView.showMultifunctionalArea = false
             self.composerView.keyboardStatus = .BWEditing
         }
     }
@@ -601,7 +601,7 @@ extension RocketChatViewController: BWComposerViewDelegate {
         }
         
         let targetHeight = (composerView.textView.frame.size.height <= composerView.kTextViewDefaultHeight ? composerView.kTextViewDefaultHeight : composerView.textView.frame.size.height)+view.safeAreaInsets.bottom+20
-        constraint.constant = composerView.kShowAreaHeight+targetHeight
+        constraint.constant = composerView.kMultifunctionalAreaHeight+targetHeight
         inputAccessoryView.superview?.layoutIfNeeded()
         
         adjustContentInsetIfNeeded()
@@ -609,7 +609,7 @@ extension RocketChatViewController: BWComposerViewDelegate {
         contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height
         collectionView.setContentOffset(contentOffset, animated: false)
         self.adjustContentOffset = false
-        self.composerView.showArea = true
+        self.composerView.showMultifunctionalArea = true
     }
 }
 
