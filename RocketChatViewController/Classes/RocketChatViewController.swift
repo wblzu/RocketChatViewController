@@ -519,12 +519,11 @@ extension RocketChatViewController {
                 inputAccessoryView.superview?.layoutIfNeeded()
             }
             completion: { (_) in
-//                self.composerView.showArea = false
-//                self.composerView.keyboardStatus = .BWEditing
+
             }
             self.composerView.multifunctionalAreaContainerView.alpha = 0
             self.composerView.showMultifunctionalArea = false
-            self.composerView.composerViewStatus = .ComposerViewStatusEditing
+            self.composerView.composerViewStatus = .statusEditing
         }
     }
 }
