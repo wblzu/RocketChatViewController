@@ -524,7 +524,7 @@ extension RocketChatViewController {
             }
             self.composerView.multifunctionalAreaContainerView.alpha = 0
             self.composerView.showMultifunctionalArea = false
-            self.composerView.keyboardStatus = .BWEditing
+            self.composerView.composerViewStatus = .ComposerViewStatusEditing
         }
     }
 }
