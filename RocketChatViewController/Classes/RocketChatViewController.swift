@@ -612,3 +612,4 @@ extension RocketChatViewController: BWComposerViewDelegate {
         self.composerView.showArea = true
     }
 }
+
