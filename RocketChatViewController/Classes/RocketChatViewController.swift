@@ -219,13 +219,6 @@ open class RocketChatViewController: UICollectionViewController {
     private var internalData: [ArraySection<AnyChatSection, AnyChatItem>] = []
 
     open weak var dataUpdateDelegate: ChatDataUpdateDelegate?
-    private let updateDataQueue: OperationQueue = {
-        let operationQueue = OperationQueue()
-        operationQueue.maxConcurrentOperationCount = 1
-        operationQueue.qualityOfService = .userInteractive
-        operationQueue.underlyingQueue = DispatchQueue.main
-        return operationQueue
-    }()
 
 //    open var isInverted = true {
     open var isInverted = false {// invert(倒置) or not, default is not
@@ -272,21 +265,10 @@ open class RocketChatViewController: UICollectionViewController {
             name: UITextView.textDidChangeNotification,
             object: composerView.textView
         )
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(composerViewTextViewShouldBeginEditing),
-            name: Notification.Name("ComposerViewTextViewShouldBeginEditing"),
-            object: nil
-        )
     }
 
-    @objc func composerViewTextViewShouldBeginEditing(_ notification: Notification) {
-        self.adjustContentOffset = true
-        debugPrint("aaaaaa contentsize composerViewTextViewShouldBeginEditing adjustContentOffset = \(adjustContentOffset)")
-    }
     @objc func textDidChange() {
         self.adjustContentOffset = true
-        debugPrint("aaaaaa contentsize textDidChange adjustContentOffset = \(adjustContentOffset)")
     }
     
     deinit {
@@ -299,11 +281,6 @@ open class RocketChatViewController: UICollectionViewController {
             self,
             name: UITextView.textDidChangeNotification,
             object: composerView.textView
-        )
-        NotificationCenter.default.removeObserver(
-            self,
-            name: Notification.Name("ComposerViewTextViewShouldBeginEditing"),
-            object: nil
         )
     }
 
@@ -402,8 +379,6 @@ extension RocketChatViewController {
 
         collectionView.contentInset = contentInset
 //        collectionView.scrollIndicatorInsets = contentInset
-        
-        debugPrint("aaaaaa contentsize adjustContentInsetIfNeeded \(willDisappear) \(keyboardHeight) \(contentInset.bottom) \(composerView.frame.size.height)")
     }
 }
 
@@ -441,25 +416,11 @@ extension RocketChatViewController {
         let keyboardFrameInView = view.convert(keyboardFrame, from: nil)
         let safeAreaFrame = view.safeAreaLayoutGuide.layoutFrame.insetBy(dx: 0, dy: -additionalSafeAreaInsets.top)
         let intersection = safeAreaFrame.intersection(keyboardFrameInView)
-
-//        let animationDuration: TimeInterval = (notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0
-//        let animationCurveRawNSN = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber
-//        let animationCurveRaw = animationCurveRawNSN?.uintValue ?? UIView.AnimationOptions.curveEaseInOut.rawValue
-//        let animationCurve = UIView.AnimationOptions(rawValue: animationCurveRaw)
-//
-//        guard intersection.height != self.keyboardHeight else {
-//            debugPrint("aaaaaa contentsize keyboardFrame.height return")
-//            return
-//        }
-
-//        debugPrint("aaaaaa contentsize keyboardFrame.height = \(keyboardFrame.height)\n intersection.height = \(intersection.height)\n composerView.frame.size.height = \(composerView.frame.size.height)\n view.safeAreaInsets.bottom = \(view.safeAreaInsets.bottom)\n intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height = \(intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height)\n self.keyboardHeight before = \(self.keyboardHeight)\n adjustContentSize = \(adjustContentSize)\n adjustContentOffset = \(adjustContentOffset)\n")
-        debugPrint("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived adjustContentSize = \(adjustContentSize) adjustContentOffset = \(adjustContentOffset) \(intersection.height)")
         
         intersectionHeight = intersection.height
         
         if intersection.height+view.safeAreaInsets.bottom-composerView.frame.size.height == self.keyboardHeight {
             if !adjustContentSize {
-                debugPrint("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived return adjustContentSize = \(adjustContentSize)")
                 return
             }
         }
@@ -474,10 +435,8 @@ extension RocketChatViewController {
                 adjustContentInsetIfNeeded()
                 contentOffset.y = keyboardHeight+composerView.frame.size.height
                 collectionView.setContentOffset(contentOffset, animated: false)
-                debugPrint("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived contentSize.height == 0 currentoffsety \(collectionView.contentOffset.y)")
             }
             else if collectionView.contentSize.height < collectionView.frame.size.height-keyboardHeight-composerView.frame.size.height {
-                debugPrint("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived contentSize.height < ")
             }
             else {
                 adjustContentInsetIfNeeded()
@@ -485,11 +444,8 @@ extension RocketChatViewController {
                     contentOffset.y = collectionView.contentSize.height-collectionView.frame.size.height+keyboardHeight+composerView.frame.size.height
                     collectionView.setContentOffset(contentOffset, animated: false)
                     self.adjustContentOffset = false
-                    debugPrint("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived contentSize.height == 0 else adjustContentOffset completed and adjustContentOffset = \(adjustContentOffset)")
                 }
             }
-            
-            debugPrint("aaaaaa contentsize _onKeyboardFrameWillChangeNotificationReceived out \(collectionView.contentSize.height) \(collectionView.frame.size.height) \(keyboardHeight) \(composerView.frame.size.height)")
         }
     }
 
@@ -529,7 +485,7 @@ extension RocketChatViewController {
 }
 
 
-
+// MARK: BWComposerViewDelegate
 extension RocketChatViewController: BWComposerViewDelegate {
     
     public func keyboardFrameChange(_ textView: UITextView, keyBoardheight: CGFloat) {
@@ -547,7 +503,6 @@ extension RocketChatViewController: BWComposerViewDelegate {
         }
 
         let changeValue = targetHeight-keyBoardheight
-        debugPrint("abcde keyboardFrameChange \(keyBoardheight) \(textView.contentSize.height) \(textView.frame.size.height) \(changeValue) \(targetHeight) \(view.safeAreaInsets.bottom) \(self.tabBarController?.tabBar.bounds.size.height) \(view.safeAreaLayoutGuide.layoutFrame)")
         if keyBoardheight <= view.safeAreaInsets.bottom {// keyboard drag normal
             constraint.constant = min(changeValue, targetHeight)
         }
@@ -564,7 +519,6 @@ extension RocketChatViewController: BWComposerViewDelegate {
         }
         
         let targetHeight = (textView.contentSize.height <= composerView.kTextViewDefaultHeight ? composerView.kTextViewDefaultHeight : textView.contentSize.height)+view.safeAreaInsets.bottom+20
-        debugPrint("abcde textViewTextChange \(targetHeight)")
         constraint.constant = min(composerView.kTextViewMaxHeight, targetHeight)
         inputAccessoryView.superview?.layoutIfNeeded()
     }
@@ -577,7 +531,6 @@ extension RocketChatViewController: BWComposerViewDelegate {
         }
         self.adjustContentOffset = true
         let targetHeight = (textView.contentSize.height <= composerView.kTextViewDefaultHeight ? composerView.kTextViewDefaultHeight : textView.contentSize.height)+view.safeAreaInsets.bottom+20
-        debugPrint("abcde textViewBeginEdit \(targetHeight)")
         constraint.constant = min(composerView.kTextViewMaxHeight, targetHeight)
         inputAccessoryView.superview?.layoutIfNeeded()
     }
@@ -611,4 +564,3 @@ extension RocketChatViewController: BWComposerViewDelegate {
         self.composerView.showMultifunctionalArea = true
     }
 }
-
